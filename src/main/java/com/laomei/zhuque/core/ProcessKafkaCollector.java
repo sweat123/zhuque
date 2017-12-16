@@ -27,7 +27,7 @@ public class ProcessKafkaCollector extends AbstractKafkaCollector {
     }
 
     @Override
-    public List<ZhuQueRecord> collect() {
+    public List<KafkaRecord> collect() {
         return null;
     }
 }

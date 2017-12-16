@@ -34,5 +34,5 @@ public interface Collector {
      * collect data from kafka
      * @return
      */
-    List<ZhuQueRecord> collect();
+    List<KafkaRecord> collect();
 }

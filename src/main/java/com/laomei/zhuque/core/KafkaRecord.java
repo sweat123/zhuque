@@ -7,13 +7,13 @@ import lombok.Data;
  * @author luobo
  */
 @Data
-public class ZhuQueRecord {
+public class KafkaRecord {
 
     private Object beforeValue;
 
     private Object afterValue;
 
-    public ZhuQueRecord(Object beforeValue, Object afterValue) {
+    public KafkaRecord(Object beforeValue, Object afterValue) {
         this.beforeValue = beforeValue;
         this.afterValue = afterValue;
     }

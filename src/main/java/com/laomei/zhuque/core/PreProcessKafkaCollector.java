@@ -32,7 +32,7 @@ public class PreProcessKafkaCollector extends AbstractKafkaCollector {
     }
 
     @Override
-    public List<ZhuQueRecord> collect() {
+    public List<KafkaRecord> collect() {
         ConsumerRecords<GenericRecord, GenericRecord> records = kafkaConsumer.poll(POLL_TIME_MS);
         if (records.count() == 0) {
             return Collections.emptyList();
@@ -40,8 +40,8 @@ public class PreProcessKafkaCollector extends AbstractKafkaCollector {
         return preProcess(records);
     }
 
-    private List<ZhuQueRecord> preProcess(ConsumerRecords<GenericRecord, GenericRecord> records)  {
-        List<ZhuQueRecord> zhuQueRecords = new ArrayList<>(records.count());
+    private List<KafkaRecord> preProcess(ConsumerRecords<GenericRecord, GenericRecord> records)  {
+        List<KafkaRecord> kafkaRecords = new ArrayList<>(records.count());
         for (val record : records) {
             if (record.value() == null) {
                 continue;
@@ -49,8 +49,8 @@ public class PreProcessKafkaCollector extends AbstractKafkaCollector {
             GenericRecord value = record.value();
             Object beforeValue = value.get(FIELD_BEFORE);
             Object afterValue = value.get(FIELD_AFTER);
-            zhuQueRecords.add(new ZhuQueRecord(beforeValue, afterValue));
+            kafkaRecords.add(new KafkaRecord(beforeValue, afterValue));
         }
-        return zhuQueRecords;
+        return kafkaRecords;
     }
 }
