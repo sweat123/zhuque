@@ -46,10 +46,11 @@ public class PreProcessKafkaCollector extends AbstractKafkaCollector {
             if (record.value() == null) {
                 continue;
             }
+            String topic = record.topic();
             GenericRecord value = record.value();
             Object beforeValue = value.get(FIELD_BEFORE);
             Object afterValue = value.get(FIELD_AFTER);
-            kafkaRecords.add(new KafkaRecord(beforeValue, afterValue));
+            kafkaRecords.add(new KafkaRecord(topic, beforeValue, afterValue));
         }
         return kafkaRecords;
     }

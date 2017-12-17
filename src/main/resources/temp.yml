@@ -1,0 +1,16 @@
+preProcessor:
+  topicConfigs:
+    - topic: topicX
+      dataTrans:
+        mode: sql
+        modeDetail: select * from xxx
+  autoOffsetReset: latest
+  kafkaTopic: TopicXX
+processor:
+  kafkaTopic: abc
+  entitySqls:
+    - sql: abc
+      name: x
+      required: true
+  reducerClazz: update
+  solrCollection: collection
