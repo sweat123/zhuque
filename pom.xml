@@ -26,6 +26,7 @@
         <kafka.version>1.0.0</kafka.version>
         <avro.version>1.8.1</avro.version>
         <curator.version>2.12.0</curator.version>
+        <guava.version>23.5-jre</guava.version>
 	</properties>
 
 	<dependencies>
@@ -37,6 +38,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,6 +72,17 @@
             <artifactId>curator-framework</artifactId>
             <version>${curator.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
     </dependencies>
 
 	<build>

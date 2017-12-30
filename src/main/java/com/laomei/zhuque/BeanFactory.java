@@ -1,6 +1,9 @@
 package com.laomei.zhuque;
 
 import org.apache.avro.generic.GenericRecord;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.context.annotation.Bean;
@@ -43,5 +46,21 @@ public class BeanFactory {
     public KafkaConsumer<?, ?> processKafkaConsumer(KafkaProperties props) {
         Map<String, Object> config = props.buildKafkaConsumerProps();
         return new KafkaConsumer<>(config);
+    }
+
+    /**
+     * zookeeper client
+     * @param zkPropperties zookeeper properties in application.yml
+     * @return zkClient
+     */
+    @Bean
+    public CuratorFramework zkClient(ZkPropperties zkPropperties) {
+        return CuratorFrameworkFactory
+                .builder()
+                .connectString(zkPropperties.getZkUrl())
+                .sessionTimeoutMs(5000)
+                .connectionTimeoutMs(5000)
+                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                .build();
     }
 }
