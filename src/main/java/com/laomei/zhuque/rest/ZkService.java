@@ -1,5 +1,6 @@
 package com.laomei.zhuque.rest;
 
+import com.laomei.zhuque.ZqInstanceFactory;
 import com.laomei.zhuque.core.SyncAssignment;
 import com.laomei.zhuque.exception.NotFindException;
 import com.laomei.zhuque.exception.NotValidationException;
@@ -18,8 +19,12 @@ import java.util.List;
 @Component
 public class ZkService {
 
-    @Autowired
     private CuratorFramework zkCli;
+
+    @Autowired
+    public ZkService(ZqInstanceFactory factory) {
+        zkCli = factory.zkClient();
+    }
 
     /**
      * get all tasks from zk
