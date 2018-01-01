@@ -1,7 +1,6 @@
 package com.laomei.zhuque.rest;
 
-import com.google.common.base.Objects;
-import com.laomei.zhuque.KafkaProperties;
+import com.laomei.zhuque.config.KafkaProperties;
 import com.laomei.zhuque.core.SyncAssignment;
 import com.laomei.zhuque.exception.NotFindException;
 import com.laomei.zhuque.exception.NotValidationException;

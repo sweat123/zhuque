@@ -1,4 +1,4 @@
-package com.laomei.zhuque;
+package com.laomei.zhuque.config;
 
 import lombok.Data;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -30,14 +30,14 @@ public class KafkaProperties {
         return props;
     }
 
-    Map<String, Object> buildKafkaProducerProps() {
+    public Map<String, Object> buildKafkaProducerProps() {
         KafkaProducerProps kafkaProducerProps = new KafkaProducerProps();
         Map<String, Object> props = buildCommonProps();
         props.putAll(kafkaProducerProps.buildProps());
         return props;
     }
 
-    Map<String, Object> buildKafkaConsumerProps() {
+    public Map<String, Object> buildKafkaConsumerProps() {
         KafkaConsumerProps kafkaConsumerProps = new KafkaConsumerProps();
         Map<String, Object> props = buildCommonProps();
         props.putAll(kafkaConsumerProps.buildProps());

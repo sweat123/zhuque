@@ -35,4 +35,9 @@ public interface Collector {
      * @return
      */
     List<KafkaRecord> collect();
+
+    /**
+     * release resources
+     */
+    void close();
 }

@@ -1,4 +1,4 @@
-package com.laomei.zhuque;
+package com.laomei.zhuque.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
