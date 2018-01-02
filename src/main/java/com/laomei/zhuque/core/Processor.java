@@ -1,12 +1,17 @@
 package com.laomei.zhuque.core;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author luobo
  */
 public interface Processor extends AutoCloseable {
-    Object process(KafkaRecord record);
 
-    Object process(List<KafkaRecord> records);
+    String PREPROCESS_KAFKA_RECORD_BEFORE_VALUE = "pre_process_kafka_record_before_value";
+    String PREPROCESS_KAFKA_RECORD_AFTER_VALUE = "pre_process_kafka_record_after_value";
+
+    Map<String, ?> process(KafkaRecord record);
+
+    List<Map<String, ?>> process(List<KafkaRecord> records);
 }

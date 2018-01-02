@@ -1,10 +1,13 @@
 package com.laomei.zhuque.core;
 
+import com.laomei.zhuque.core.transformation.Transform;
 import lombok.Data;
 import lombok.val;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author luobo
@@ -12,17 +15,29 @@ import java.util.List;
 @Data
 public class PreProcessor implements Processor {
 
-    @Override
-    public Object process(KafkaRecord record) {
+    private List<Transform> transforms;
 
-        return null;
+    public PreProcessor(List<Transform> transforms) {
+        this.transforms = transforms;
     }
 
     @Override
-    public List<Object> process(final List<KafkaRecord> records) {
-        List<Object> results = new ArrayList<>(records.size());
+    public Map<String, ?> process(KafkaRecord record) {
+        Map<String, ?> context = makeContextWithRecord(record);
+        for (Transform transform : transforms) {
+            context = transform.transform(context);
+            if (context == null) {
+                return null;
+            }
+        }
+        return context;
+    }
+
+    @Override
+    public List<Map<String, ?>> process(final List<KafkaRecord> records) {
+        List<Map<String, ?>> results = new ArrayList<>(records.size());
         for (val record : records) {
-            Object result = process(record);
+            Map<String, ?> result = process(record);
             if (result != null) {
                 results.add(result);
             }
@@ -32,5 +47,12 @@ public class PreProcessor implements Processor {
 
     @Override
     public void close() {
+    }
+
+    private Map<String, Object> makeContextWithRecord(KafkaRecord record) {
+        Map<String, Object> context = new HashMap<>();
+        context.put(PREPROCESS_KAFKA_RECORD_BEFORE_VALUE, record.getPreProcessRecord().getBeforeValue());
+        context.put(PREPROCESS_KAFKA_RECORD_AFTER_VALUE, record.getPreProcessRecord().getAfterValue());
+        return context;
     }
 }
