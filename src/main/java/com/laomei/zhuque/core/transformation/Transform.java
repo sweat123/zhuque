@@ -7,5 +7,5 @@ import java.util.Map;
  */
 public interface Transform {
 
-    Map<String, ?> transform(Map<String, ?> context);
+    Map<String, Object> transform(Map<String, Object> context);
 }

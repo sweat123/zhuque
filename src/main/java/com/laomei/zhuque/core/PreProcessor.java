@@ -22,8 +22,8 @@ public class PreProcessor implements Processor {
     }
 
     @Override
-    public Map<String, ?> process(KafkaRecord record) {
-        Map<String, ?> context = makeContextWithRecord(record);
+    public Map<String, Object> process(KafkaRecord record) {
+        Map<String, Object> context = makeContextWithRecord(record);
         for (Transform transform : transforms) {
             context = transform.transform(context);
             if (context == null) {
@@ -34,10 +34,10 @@ public class PreProcessor implements Processor {
     }
 
     @Override
-    public List<Map<String, ?>> process(final List<KafkaRecord> records) {
-        List<Map<String, ?>> results = new ArrayList<>(records.size());
+    public List<Map<String, Object>> process(final List<KafkaRecord> records) {
+        List<Map<String, Object>> results = new ArrayList<>(records.size());
         for (val record : records) {
-            Map<String, ?> result = process(record);
+            Map<String, Object> result = process(record);
             if (result != null) {
                 results.add(result);
             }
