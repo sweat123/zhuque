@@ -1,10 +1,10 @@
 package com.laomei.zhuque.rest;
 
-import com.laomei.zhuque.ZqInstanceFactory;
+import com.laomei.zhuque.config.ZqInstanceFactory;
 import com.laomei.zhuque.core.SyncAssignment;
 import com.laomei.zhuque.exception.NotFindException;
 import com.laomei.zhuque.exception.NotValidationException;
-import com.laomei.zhuque.util.StringUtil;
+import com.laomei.zhuque.util.StrUtil;
 import com.laomei.zhuque.util.ZhuQueZkPathEnum;
 import com.laomei.zhuque.util.ZkUtil;
 import org.apache.curator.framework.CuratorFramework;
@@ -64,7 +64,7 @@ public class ZkService {
             //create task with configuration
             return configuration;
         }
-        return StringUtil.EMPTY_STR;
+        return StrUtil.EMPTY_STR;
     }
 
     public String deleteTask(String taskName) throws NotFindException {
