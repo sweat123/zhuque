@@ -45,7 +45,6 @@ public class PreProcessor implements Processor {
         return results;
     }
 
-    @Override
     public void close() {
     }
 

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -14,15 +15,15 @@ public class Scheduler implements AutoCloseable {
 
     private Collector kafkaCollector;
 
-    private Processor processor;
+    private Processor preProcessor;
 
     private AtomicBoolean isStart;
 
     private AtomicBoolean isClose;
 
-    public Scheduler(Collector kafkaCollector, Processor processor) {
+    public Scheduler(Collector kafkaCollector, Processor preProcessor) {
         this.kafkaCollector = kafkaCollector;
-        this.processor = processor;
+        this.preProcessor = preProcessor;
         isStart = new AtomicBoolean(false);
         isClose = new AtomicBoolean(false);
     }
@@ -35,7 +36,7 @@ public class Scheduler implements AutoCloseable {
         LOGGER.info("PreProcessor start...");
         while (!isClose.get()) {
             List<KafkaRecord> kafkaRecords = kafkaCollector.collect();
-            processor.process(kafkaRecords);
+            List<Map<String, Object>> resutls = preProcessor.process(kafkaRecords);
         }
     }
 
@@ -48,7 +49,7 @@ public class Scheduler implements AutoCloseable {
         LOGGER.info("PreProcessor begin to close...");
         kafkaCollector.close();
         try {
-            processor.close();
+            preProcessor.close();
         } catch (Exception e) {
             LOGGER.error("close processor failed.", e);
         }
