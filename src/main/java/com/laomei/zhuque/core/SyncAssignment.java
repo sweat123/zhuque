@@ -29,6 +29,7 @@ public class SyncAssignment {
         @Data
         public static class TopicConfig {
             private String topic;
+            private Boolean removeBeforeRecord;
             private FilterTrans filterTrans;
             private DataTrans dataTrans;
             private FieldTrans fieldTrans;

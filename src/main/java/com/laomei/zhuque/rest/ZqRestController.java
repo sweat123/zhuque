@@ -6,7 +6,7 @@ import com.laomei.zhuque.exception.NotFindException;
 import com.laomei.zhuque.exception.NotValidationException;
 import com.laomei.zhuque.rest.rspdata.Result;
 import com.laomei.zhuque.rest.rspdata.SyncAssignmentVo;
-import com.laomei.zhuque.util.StringUtil;
+import com.laomei.zhuque.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,6 +57,6 @@ public class ZqRestController {
         } catch (NotFindException e) {
             return Result.notFount("message: " + e.getMessage());
         }
-        return Result.ok(StringUtil.EMPTY_STR);
+        return Result.ok(StrUtil.EMPTY_STR);
     }
 }
