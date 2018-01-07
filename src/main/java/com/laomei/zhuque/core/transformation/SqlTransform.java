@@ -10,6 +10,7 @@ import java.util.Map;
 
 /**
  * process sql with context;
+ * SqlTransform and PlaceholderTransform can't be exist together;
  * @author luobo
  **/
 public class SqlTransform implements Transform {

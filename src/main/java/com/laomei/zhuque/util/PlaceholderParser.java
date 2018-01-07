@@ -1,6 +1,5 @@
 package com.laomei.zhuque.util;
 
-import com.laomei.zhuque.contants.ZhuQueMagicNumContants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PropertyPlaceholderHelper;
@@ -62,7 +61,7 @@ public class PlaceholderParser {
             } catch (Exception e) {
                 LOGGER.debug("replace placeholder with values in context failed. " +
                                 "placeholder name: {}, context: {}", placeholderName, context);
-                return ZhuQueMagicNumContants.NULL;
+                return StrUtil.NULL;
             }
         }
     }

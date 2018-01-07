@@ -1,5 +1,6 @@
 package com.laomei.zhuque.core.transformation;
 
+import com.google.common.base.Preconditions;
 import com.laomei.zhuque.util.PlaceholderParser;
 
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * replace placeholder with context;
+ * SqlTransform and PlaceholderTransform can't be exist together;
  * @author luobo
  */
 public class PlaceholderTransform implements Transform {
@@ -19,11 +21,13 @@ public class PlaceholderTransform implements Transform {
     private List<String> placeholders;
 
     public PlaceholderTransform(String placeholders) {
+        Preconditions.checkNotNull(placeholders);
         this.placeholders = Stream.of(placeholders.split(COMMA)).parallel().map(String::trim).collect(toList());
     }
 
     @Override
     public Map<String, Object> transform(final Map<String, Object> context) {
+        Preconditions.checkNotNull(context);
         return replacePlaceholderWithContext(context);
     }
 
