@@ -1,6 +1,9 @@
 package com.laomei.zhuque.core.executor;
 
-import java.util.List;
+import com.google.common.base.Preconditions;
+import com.laomei.zhuque.core.Reducer;
+
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -8,12 +11,22 @@ import java.util.Map;
  **/
 public class NoopExecutor implements Executor {
 
+    private Reducer reducer;
+
+    public NoopExecutor(Reducer reducer) {
+        Preconditions.checkNotNull(reducer);
+        this.reducer = reducer;
+    }
+
     @Override
-    public void execute(List<Map<String, Object>> contexts) {
+    public void execute(Collection<Map<String, Object>> contexts) {
+        if (!contexts.isEmpty()) {
+            reducer.reduce(contexts);
+        }
     }
 
     @Override
     public void close() {
-
+        reducer.close();
     }
 }

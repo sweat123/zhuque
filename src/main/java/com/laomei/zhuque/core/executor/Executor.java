@@ -1,6 +1,6 @@
 package com.laomei.zhuque.core.executor;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public interface Executor {
 
-    void execute(List<Map<String, Object>> contexts);
+    void execute(Collection<Map<String, Object>> contexts);
 
     void close();
 }
