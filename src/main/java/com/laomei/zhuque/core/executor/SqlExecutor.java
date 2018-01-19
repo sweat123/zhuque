@@ -1,7 +1,7 @@
 package com.laomei.zhuque.core.executor;
 
 import com.google.common.base.Preconditions;
-import com.laomei.zhuque.core.Reducer;
+import com.laomei.zhuque.core.reducer.Reducer;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.EntitySql;
 import com.laomei.zhuque.exception.NoResultException;
 import com.laomei.zhuque.util.PlaceholderParser;

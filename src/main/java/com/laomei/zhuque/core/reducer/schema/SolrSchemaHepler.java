@@ -1,14 +1,12 @@
-package com.laomei.zhuque.core.schema;
+package com.laomei.zhuque.core.reducer.schema;
 
 import com.laomei.zhuque.util.SchemaUtil;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +37,7 @@ public class SolrSchemaHepler implements SchemaHelper {
     }
 
     @Override
-    public Map<String, Class<?>> getSchema() throws IOException, SolrServerException {
+    public Map<String, Class<?>> getSchema() throws Exception {
         NamedList<Object> namedList = solrClient.request(new SchemaRequest(), solrCollectionName);
         SimpleOrderedMap orderedMap = (SimpleOrderedMap) namedList.get(SCHEMA);
         List<SimpleOrderedMap> fields = (List<SimpleOrderedMap>) orderedMap.get(FIELDS);

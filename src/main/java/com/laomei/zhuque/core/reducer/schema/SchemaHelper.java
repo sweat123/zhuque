@@ -1,8 +1,5 @@
-package com.laomei.zhuque.core.schema;
+package com.laomei.zhuque.core.reducer.schema;
 
-import org.apache.solr.client.solrj.SolrServerException;
-
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -19,5 +16,5 @@ public interface SchemaHelper {
      * get schema from solr, mysql and so on;
      * @return fields and the clazz of the fields
      */
-    Map<String, Class<?>> getSchema() throws IOException, SolrServerException;
+    Map<String, Class<?>> getSchema() throws Exception;
 }
