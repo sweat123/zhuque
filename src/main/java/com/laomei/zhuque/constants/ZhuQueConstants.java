@@ -1,9 +1,9 @@
-package com.laomei.zhuque.contants;
+package com.laomei.zhuque.constants;
 
 /**
  * @author luobo
  */
-public interface ZhuQueContants {
+public interface ZhuQueConstants {
     /**
      *  a gt b ==> a > b
      */

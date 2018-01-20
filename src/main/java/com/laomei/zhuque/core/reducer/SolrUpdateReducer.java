@@ -3,6 +3,7 @@ package com.laomei.zhuque.core.reducer;
 import com.laomei.zhuque.core.reducer.schema.SchemaHelper;
 import com.laomei.zhuque.core.reducer.schema.SolrSchemaHepler;
 import com.laomei.zhuque.exception.InitSchemaFailedException;
+import com.laomei.zhuque.util.ObjTypeUtil;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
@@ -53,11 +54,11 @@ public class SolrUpdateReducer implements Reducer {
             }
         }
         if (!documents.isEmpty()) {
-            updateSolrWitlDocs(documents);
+            updateSolrWithDocs(documents);
         }
     }
 
-    private void updateSolrWitlDocs(Collection<SolrInputDocument> documents) {
+    private void updateSolrWithDocs(Collection<SolrInputDocument> documents) {
         try {
             solrClient.add(solrCollectionName, documents);
         } catch (SolrServerException e) {
@@ -65,11 +66,36 @@ public class SolrUpdateReducer implements Reducer {
         } catch (IOException e) {
             LOGGER.error("update solr collection: {} failed; May be there is a communication error with the server; Documents: {}",
                     solrCollectionName, documents, e);
+        } catch (Exception e) {
+            LOGGER.error("unknown exception; solr collection: {};", solrCollectionName, e);
         }
     }
 
     private SolrInputDocument getSolrDocWithContext(Map<String, Object> context) {
-        return null;
+        try {
+            SolrInputDocument document = new SolrInputDocument();
+            getSolrDocWithContext(context, document);
+            return document;
+        } catch (Exception e) {
+            LOGGER.error("get solr document failed; solr collection: {}, context: {}", solrCollectionName, context, e);
+            return null;
+        }
+    }
+
+    private void getSolrDocWithContext(Map<String, Object> context, SolrInputDocument document) {
+        for (Map.Entry<String, Object> entry : context.entrySet()) {
+            String field = entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                getSolrDocWithContext((Map<String, Object>) value, document);
+            } else {
+                if (solrSchemas.containsKey(field)) {
+                    Class clazz = solrSchemas.get(field);
+                    Object valueInSolrType = ObjTypeUtil.convert(value, clazz);
+                    document.addField(field, valueInSolrType);
+                }
+            }
+        }
     }
 
     @Override

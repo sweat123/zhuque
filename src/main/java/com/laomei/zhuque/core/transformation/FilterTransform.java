@@ -1,7 +1,7 @@
 package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
-import com.laomei.zhuque.contants.ZhuQueContants;
+import com.laomei.zhuque.constants.ZhuQueConstants;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentPreProcessor.FilterTrans;
 import com.laomei.zhuque.util.ObjTypeUtil;
 
@@ -71,10 +71,10 @@ public class FilterTransform implements Transform {
     }
 
     private boolean contextValueInRange(Object value, Map<String, String> range) {
-        String gtv = range.get(ZhuQueContants.GT);
-        String gtev = range.get(ZhuQueContants.GTE);
-        String ltv = range.get(ZhuQueContants.LT);
-        String ltev = range.get(ZhuQueContants.LTE);
+        String gtv = range.get(ZhuQueConstants.GT);
+        String gtev = range.get(ZhuQueConstants.GTE);
+        String ltv = range.get(ZhuQueConstants.LT);
+        String ltev = range.get(ZhuQueConstants.LTE);
         if (null != gtv) {
             return ObjTypeUtil.compare(value, gtv) > 0;
         }
