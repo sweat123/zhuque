@@ -1,5 +1,6 @@
 package com.laomei.zhuque.core;
 
+import com.laomei.zhuque.config.ZqInstanceFactory;
 import com.laomei.zhuque.core.executor.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class Scheduler implements AutoCloseable {
 
     private Collector kafkaCollector;
 
-    private Processor preProcessor;
+    private Processor processor;
 
     private Executor executor;
 
@@ -24,9 +25,16 @@ public class Scheduler implements AutoCloseable {
 
     private AtomicBoolean isClose;
 
-    public Scheduler(Collector kafkaCollector, Processor preProcessor, Executor executor) {
+    public static Scheduler newScheduler(SyncAssignment assignment, ZqInstanceFactory factory) {
+        KafkaCollector collector = new KafkaCollector(factory.kafkaConsumer());
+        //TODO: set transforms tag before transform configuration in temp.yml
+        //init transforms
+        return null;
+    }
+
+    private Scheduler(Collector kafkaCollector, Processor processor, Executor executor) {
         this.kafkaCollector = kafkaCollector;
-        this.preProcessor = preProcessor;
+        this.processor = processor;
         this.executor = executor;
         isStart = new AtomicBoolean(false);
         isClose = new AtomicBoolean(false);
@@ -34,27 +42,27 @@ public class Scheduler implements AutoCloseable {
 
     public void start() {
         if (!isStart.compareAndSet(false, true)) {
-            LOGGER.info("PreProcessor is running.");
+            LOGGER.info("Scheduler is running.");
             return;
         }
-        LOGGER.info("PreProcessor start...");
+        LOGGER.info("Scheduler start...");
         while (!isClose.get()) {
             List<KafkaRecord> kafkaRecords = kafkaCollector.collect();
-            List<Map<String, Object>> resutls = preProcessor.process(kafkaRecords);
-            executor.execute(resutls);
+            List<Map<String, Object>> results = processor.process(kafkaRecords);
+            executor.execute(results);
         }
     }
 
     @Override
     public void close() {
         if (!isClose.compareAndSet(false, true)) {
-            LOGGER.error("PreProcessor is closing...");
+            LOGGER.error("Scheduler is closing...");
             return;
         }
-        LOGGER.info("PreProcessor begin to close...");
+        LOGGER.info("Scheduler begin to close...");
         kafkaCollector.close();
-        preProcessor.close();
+        processor.close();
         executor.close();
-        LOGGER.info("PreProcessor is closed...");
+        LOGGER.info("Scheduler is closed...");
     }
 }

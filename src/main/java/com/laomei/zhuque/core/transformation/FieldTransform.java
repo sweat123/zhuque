@@ -2,7 +2,8 @@ package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
 import com.laomei.zhuque.core.Collector;
-import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentPreProcessor.FieldTrans;
+import com.laomei.zhuque.core.SyncAssignment;
+import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.FieldTrans;
 
 import java.util.Map;
 import java.util.Objects;

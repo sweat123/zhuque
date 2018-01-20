@@ -25,6 +25,9 @@ public class ZqInstanceFactory {
     @Autowired
     private KafkaProducer<?, ?> kafkaProducer;
 
+    @Autowired
+    private KafkaProperties props;
+
     private Map<String, JdbcTemplate> jdbcTemplateMap;
 
     public ZqInstanceFactory() {
@@ -32,23 +35,16 @@ public class ZqInstanceFactory {
     }
 
     /**
-     * kafka consumer for preProcess part
-     * @param props kafka properties in application.yml
+     * kafka consumer for collecting record
      * @return KafkaConsumer
      */
-    public KafkaConsumer<GenericRecord, GenericRecord> preProcessorKafkaConsumer(KafkaProperties props) {
-        Map<String, Object> config = props.buildKafkaConsumerProps();
-        return new KafkaConsumer<>(config);
-    }
-
-    /**
-     * kafka consumer for process part
-     * @param props kafka properties in application.yml
-     * @return KafkaConsumer
-     */
-    public KafkaConsumer<?, ?> processKafkaConsumer(KafkaProperties props) {
-        Map<String, Object> config = props.buildKafkaConsumerProps();
-        return new KafkaConsumer<>(config);
+    public KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer() {
+        if (props != null) {
+            Map<String, Object> config = props.buildKafkaConsumerProps();
+            return new KafkaConsumer<>(config);
+        } else {
+            throw new NullPointerException("kafka consumer properties can't be null;");
+        }
     }
 
     public KafkaProducer<?, ?> kafkaProducer() {

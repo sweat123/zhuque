@@ -37,7 +37,7 @@ public class RecordTransform implements Transform {
      */
     private Map<String, Object> removeBeforeRecordFromContext(Map<String, Object> context) {
         Map<String, Object> newContext = new HashMap<>();
-        GenericRecord afterRecord = (GenericRecord) context.get(Processor.PREPROCESS_KAFKA_RECORD_AFTER_VALUE);
+        GenericRecord afterRecord = (GenericRecord) context.get(Processor.PROCESS_KAFKA_RECORD_AFTER_VALUE);
         afterRecord.getSchema().getFields().forEach(field ->  {
             String fieldName = field.name();
             Object fieldValue = afterRecord.get(fieldName);

@@ -12,7 +12,7 @@ public class ZhuqueApplicationTests {
 
     @Test
     public void testSyncTaskMetadataYaml() {
-        String str = "preProcessor:\n" +
+        String str = "processor:\n" +
                 "  topicConfigs:\n" +
                 "    - topic: topicX\n" +
                 "      dataTrans:\n" +
@@ -20,8 +20,6 @@ public class ZhuqueApplicationTests {
                 "        modeDetail: select * from xxx\n" +
                 "  autoOffsetReset: latest\n" +
                 "  kafkaTopic: TopicXX\n" +
-                "processor:\n" +
-                "  kafkaTopic: abc\n" +
                 "  entitySqls:\n" +
                 "    - sql: abc\n" +
                 "      name: x\n" +

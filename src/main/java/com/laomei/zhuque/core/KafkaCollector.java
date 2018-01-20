@@ -1,9 +1,11 @@
 package com.laomei.zhuque.core;
 
+import lombok.val;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -11,13 +13,13 @@ import java.util.List;
 /**
  * @author luobo
  */
-public abstract class AbstractKafkaCollector implements Collector {
+public class KafkaCollector implements Collector {
 
     private Collection<String> subscribedTopics;
 
     private KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer;
 
-    public AbstractKafkaCollector(KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer) {
+    public KafkaCollector(KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer) {
         this.kafkaConsumer = kafkaConsumer;
         this.subscribedTopics = Collections.emptySet();
     }
@@ -56,5 +58,18 @@ public abstract class AbstractKafkaCollector implements Collector {
      * @param records ConsumerRecords
      * @return kafka records
      */
-    public abstract List<KafkaRecord> process(ConsumerRecords<GenericRecord, GenericRecord> records);
+    public List<KafkaRecord> process(ConsumerRecords<GenericRecord, GenericRecord> records)  {
+        List<KafkaRecord> kafkaRecords = new ArrayList<>(records.count());
+        for (val record : records) {
+            if (record.value() == null) {
+                continue;
+            }
+            String topic = record.topic();
+            GenericRecord value = record.value();
+            Object beforeValue = value.get(FIELD_BEFORE);
+            Object afterValue = value.get(FIELD_AFTER);
+            kafkaRecords.add(new KafkaRecord(topic, new KafkaRecord.PreProcessRecord(beforeValue, afterValue)));
+        }
+        return kafkaRecords;
+    }
 }

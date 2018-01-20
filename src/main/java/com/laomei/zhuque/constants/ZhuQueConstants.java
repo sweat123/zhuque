@@ -1,9 +1,9 @@
-package com.laomei.zhuque.contants;
+package com.laomei.zhuque.constants;
 
 /**
  * @author luobo
  */
-public interface ZhuQueContants {
+public interface ZhuQueConstants {
     /**
      *  a gt b ==> a > b
      */
@@ -23,4 +23,6 @@ public interface ZhuQueContants {
      * a lte b ==> a <= b
      */
     String LTE = "lte";
+
+    String SOLR_CONTEXT_ID = "id";
 }

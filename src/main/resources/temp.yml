@@ -1,4 +1,4 @@
-preProcessor:
+processor:
   topicConfigs:
     - topic: topicX
       dataTrans:
@@ -6,8 +6,6 @@ preProcessor:
         modeDetail: select * from xxx
   autoOffsetReset: latest
   kafkaTopic: TopicXX
-processor:
-  kafkaTopic: abc
   entitySqls:
     - sql: abc
       name: x

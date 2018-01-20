@@ -3,6 +3,12 @@ package com.laomei.zhuque.core.reducer;
 import com.laomei.zhuque.core.reducer.schema.SchemaHelper;
 import com.laomei.zhuque.core.reducer.schema.SolrSchemaHepler;
 import com.laomei.zhuque.exception.InitSchemaFailedException;
+import com.laomei.zhuque.util.ObjTypeUtil;
+import com.lmax.disruptor.EventFactory;
+import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.EventTranslatorOneArg;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.dsl.Disruptor;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
@@ -29,6 +35,15 @@ public class SolrUpdateReducer implements Reducer {
 
     private Map<String, Class<?>> solrSchemas;
 
+    private Disruptor<MsgEntry> disruptor;
+
+    private RingBuffer<MsgEntry> ringBuffer;
+
+    private EventTranslatorOneArg<MsgEntry, Collection<Map<String, Object>>> TRANSLATOR =
+            (event, sequence, arg0) -> {
+                event.contexts = arg0;
+            };
+
     public SolrUpdateReducer(@NotNull String solrCollectionName, @NotNull SolrClient solrClient) throws InitSchemaFailedException {
         this.solrCollectionName = solrCollectionName;
         this.solrClient = solrClient;
@@ -41,11 +56,21 @@ public class SolrUpdateReducer implements Reducer {
             throw new InitSchemaFailedException("Get Solr schema from collection: " + solrCollectionName + " failed;"
                     + " Exception message: " + e);
         }
+        disruptor = new Disruptor<>(new MsgEntryFactory(), 4096, r -> {
+            return new Thread(r, "Solr-update-reducer-thread");
+        });
+        disruptor.handleEventsWith(new MsgEntryHandler(this));
+        ringBuffer = disruptor.getRingBuffer();
+        disruptor.start();
     }
 
     @Override
     public void reduce(Collection<Map<String, Object>> contexts) {
-        List<SolrInputDocument> documents = new ArrayList<>();
+        ringBuffer.publishEvent(TRANSLATOR, contexts);
+    }
+
+    private void updateSolr(Collection<Map<String, Object>> contexts) {
+        List<SolrInputDocument> documents = new ArrayList<>(contexts.size());
         for (Map<String, Object> context : contexts) {
             SolrInputDocument doc = getSolrDocWithContext(context);
             if (doc != null) {
@@ -53,11 +78,11 @@ public class SolrUpdateReducer implements Reducer {
             }
         }
         if (!documents.isEmpty()) {
-            updateSolrWitlDocs(documents);
+            updateSolrWithDocs(documents);
         }
     }
 
-    private void updateSolrWitlDocs(Collection<SolrInputDocument> documents) {
+    private void updateSolrWithDocs(Collection<SolrInputDocument> documents) {
         try {
             solrClient.add(solrCollectionName, documents);
         } catch (SolrServerException e) {
@@ -65,16 +90,74 @@ public class SolrUpdateReducer implements Reducer {
         } catch (IOException e) {
             LOGGER.error("update solr collection: {} failed; May be there is a communication error with the server; Documents: {}",
                     solrCollectionName, documents, e);
+        } catch (Exception e) {
+            LOGGER.error("unknown exception; solr collection: {};", solrCollectionName, e);
         }
     }
 
     private SolrInputDocument getSolrDocWithContext(Map<String, Object> context) {
-        return null;
+        try {
+            SolrInputDocument document = new SolrInputDocument();
+            getSolrDocWithContext(context, document);
+            return document;
+        } catch (Exception e) {
+            LOGGER.error("get solr document failed; solr collection: {}, context: {}", solrCollectionName, context, e);
+            return null;
+        }
+    }
+
+    private void getSolrDocWithContext(Map<String, Object> context, SolrInputDocument document) {
+        for (Map.Entry<String, Object> entry : context.entrySet()) {
+            String field = entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                getSolrDocWithContext((Map<String, Object>) value, document);
+            } else {
+                if (solrSchemas.containsKey(field)) {
+                    Class clazz = solrSchemas.get(field);
+                    Object valueInSolrType = ObjTypeUtil.convert(value, clazz);
+                    document.addField(field, valueInSolrType);
+                }
+            }
+        }
     }
 
     @Override
     public void close() {
+        disruptor.shutdown();
         solrSchemas.clear();
         solrClient = null;
+    }
+
+    // belows are contexts wrapper for disruptor
+
+    static class MsgEntry {
+        Collection<Map<String, Object>> contexts;
+
+        MsgEntry(Collection<Map<String, Object>> contexts) {
+            this.contexts = contexts;
+        }
+    }
+
+    static class MsgEntryFactory implements EventFactory<MsgEntry> {
+        @Override
+        public MsgEntry newInstance() {
+            return new MsgEntry(null);
+        }
+    }
+
+    static class MsgEntryHandler implements EventHandler<MsgEntry> {
+
+        SolrUpdateReducer reducer;
+
+        MsgEntryHandler(SolrUpdateReducer reducer) {
+            this.reducer = reducer;
+        }
+
+        @Override
+        public void onEvent(MsgEntry event, long sequence, boolean endOfBatch) throws Exception {
+           reducer.updateSolr(event.contexts);
+            event.contexts = null;
+        }
     }
 }
