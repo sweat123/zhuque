@@ -1,5 +1,6 @@
 package com.laomei.zhuque.core;
 
+import com.laomei.zhuque.core.executor.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +18,16 @@ public class Scheduler implements AutoCloseable {
 
     private Processor preProcessor;
 
+    private Executor executor;
+
     private AtomicBoolean isStart;
 
     private AtomicBoolean isClose;
 
-    public Scheduler(Collector kafkaCollector, Processor preProcessor) {
+    public Scheduler(Collector kafkaCollector, Processor preProcessor, Executor executor) {
         this.kafkaCollector = kafkaCollector;
         this.preProcessor = preProcessor;
+        this.executor = executor;
         isStart = new AtomicBoolean(false);
         isClose = new AtomicBoolean(false);
     }
@@ -37,6 +41,7 @@ public class Scheduler implements AutoCloseable {
         while (!isClose.get()) {
             List<KafkaRecord> kafkaRecords = kafkaCollector.collect();
             List<Map<String, Object>> resutls = preProcessor.process(kafkaRecords);
+            executor.execute(resutls);
         }
     }
 
@@ -48,11 +53,8 @@ public class Scheduler implements AutoCloseable {
         }
         LOGGER.info("PreProcessor begin to close...");
         kafkaCollector.close();
-        try {
-            preProcessor.close();
-        } catch (Exception e) {
-            LOGGER.error("close processor failed.", e);
-        }
+        preProcessor.close();
+        executor.close();
         LOGGER.info("PreProcessor is closed...");
     }
 }
