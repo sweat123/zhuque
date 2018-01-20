@@ -2,7 +2,7 @@ package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
 import com.laomei.zhuque.constants.ZhuQueConstants;
-import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentPreProcessor.FilterTrans;
+import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.FilterTrans;
 import com.laomei.zhuque.util.ObjTypeUtil;
 
 import java.util.List;

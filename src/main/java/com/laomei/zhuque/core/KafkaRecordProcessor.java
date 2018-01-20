@@ -13,11 +13,11 @@ import java.util.Map;
  * @author luobo
  */
 @Data
-public class PreProcessor implements Processor {
+public class KafkaRecordProcessor implements Processor {
 
     private List<Transform> transforms;
 
-    public PreProcessor(List<Transform> transforms) {
+    public KafkaRecordProcessor(List<Transform> transforms) {
         this.transforms = transforms;
     }
 
@@ -50,8 +50,8 @@ public class PreProcessor implements Processor {
 
     private Map<String, Object> makeContextWithRecord(KafkaRecord record) {
         Map<String, Object> context = new HashMap<>();
-        context.put(PREPROCESS_KAFKA_RECORD_BEFORE_VALUE, record.getPreProcessRecord().getBeforeValue());
-        context.put(PREPROCESS_KAFKA_RECORD_AFTER_VALUE, record.getPreProcessRecord().getAfterValue());
+        context.put(PROCESS_KAFKA_RECORD_BEFORE_VALUE, record.getPreProcessRecord().getBeforeValue());
+        context.put(PROCESS_KAFKA_RECORD_AFTER_VALUE, record.getPreProcessRecord().getAfterValue());
         return context;
     }
 }

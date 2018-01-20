@@ -13,7 +13,6 @@ import java.util.Map;
 public class SyncAssignment {
 
     private static final Yaml YAML = new Yaml();
-    private SyncAssignmentPreProcessor preProcessor;
     private SyncAssignmentProcessor processor;
 
     public static SyncAssignment newSyncTaskMetadata(String metadata) {
@@ -21,10 +20,13 @@ public class SyncAssignment {
     }
 
     @Data
-    public static class SyncAssignmentPreProcessor {
-        private String autoOffsetReset;
+    public static class SyncAssignmentProcessor {
         private String kafkaTopic;
+        private String autoOffsetReset;
         private List<TopicConfig> topicConfigs;
+        private List<EntitySql> entitySqls;
+        private String reducerClazz;
+        private String solrCollection;
 
         @Data
         public static class TopicConfig {
@@ -56,14 +58,6 @@ public class SyncAssignment {
             private Map<String, List<String>> in;
             private Map<String, List<String>> notIn;
         }
-    }
-
-    @Data
-    public static class SyncAssignmentProcessor {
-        private String kafkaTopic;
-        private List<EntitySql> entitySqls;
-        private String reducerClazz;
-        private String solrCollection;
 
         @Data
         public static class EntitySql {

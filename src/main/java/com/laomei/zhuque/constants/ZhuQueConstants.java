@@ -23,4 +23,6 @@ public interface ZhuQueConstants {
      * a lte b ==> a <= b
      */
     String LTE = "lte";
+
+    String SOLR_CONTEXT_ID = "id";
 }
