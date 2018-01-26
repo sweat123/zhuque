@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * delete solr index with ids;
@@ -25,6 +26,8 @@ import java.util.Map;
  **/
 public class SolrDeleteReducer implements Reducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrDeleteReducer.class);
+
+    private AtomicBoolean isClosed;
 
     private String solrCollectionName;
 
@@ -42,6 +45,7 @@ public class SolrDeleteReducer implements Reducer {
     public SolrDeleteReducer(@NotNull String solrCollectionName, @NotNull SolrClient solrClient) {
         this.solrCollectionName = solrCollectionName;
         this.solrClient = solrClient;
+        isClosed = new AtomicBoolean(false);
         disruptor = new Disruptor<>(new MsgEntryFactory(), 4096, r -> {
             return new Thread(r, "Solr-delete-reducer-thread");
         });
@@ -52,23 +56,31 @@ public class SolrDeleteReducer implements Reducer {
 
     @Override
     public void reduce(Collection<Map<String, Object>> contexts) {
+        if (isClosed.get()) return;
         ringBuffer.publishEvent(TRANSLATOR, contexts);
     }
 
     @Override
     public void close() {
-        disruptor.shutdown();
-        solrClient = null;
+        if (isClosed.compareAndSet(false, true)) {
+            disruptor.shutdown();
+            solrClient = null;
+            disruptor = null;
+            ringBuffer = null;
+        }
     }
 
     private void deleteSolrIndex(Collection<Map<String, Object>> contexts) {
+        if (isClosed.get()) return;
         List<String> deleteDocIds = new ArrayList<>(contexts.size());
         for (Map<String, Object> context : contexts) {
+            if (isClosed.get()) return;
             Object docId = context.get(ZhuQueConstants.SOLR_CONTEXT_ID);
             if (docId != null) {
                 deleteDocIds.add(String.valueOf(docId));
             }
         }
+        if (isClosed.get()) return;
         if (!deleteDocIds.isEmpty()) {
             deleteSolrWithDocIds(deleteDocIds);
         }

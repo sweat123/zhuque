@@ -13,10 +13,20 @@ import java.util.Map;
 public class SyncAssignment {
 
     private static final Yaml YAML = new Yaml();
-    private SyncAssignmentProcessor processor;
 
     public static SyncAssignment newSyncTaskMetadata(String metadata) {
         return YAML.loadAs(metadata, SyncAssignment.class);
+    }
+
+    private MysqlConfig mysql;
+
+    private SyncAssignmentProcessor processor;
+
+    @Data
+    public static class MysqlConfig {
+        private String address;
+        private String username;
+        private String password;
     }
 
     @Data
@@ -44,6 +54,9 @@ public class SyncAssignment {
 
         @Data
         public static class DataTrans {
+            public static final String SQL_MODE = "sql";
+            public static final String PLACEHOLDER_MODE = "placeholder";
+
             private String mode;
             private String modeDetail;
         }
