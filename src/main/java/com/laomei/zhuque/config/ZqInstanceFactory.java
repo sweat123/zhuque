@@ -1,9 +1,12 @@
 package com.laomei.zhuque.config;
 
+import com.laomei.zhuque.core.SyncAssignment;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -27,6 +30,9 @@ public class ZqInstanceFactory {
 
     @Autowired
     private KafkaProperties props;
+
+    @Autowired
+    private SolrClient solrClient;
 
     private Map<String, JdbcTemplate> jdbcTemplateMap;
 
@@ -61,15 +67,18 @@ public class ZqInstanceFactory {
 
     /**
      * get JdbcTemplate with table address, user and password
-     * @param address table address
-     * @param user username
-     * @param password password
+     * @param mysqlConfig MysqlConfig
      * @return JdbcTemplate
      */
-    public JdbcTemplate jdbcTemplate(String address, String user, String password) {
-        return jdbcTemplateMap.computeIfAbsent(address, ignore -> {
-            DataSource dataSource = new DriverManagerDataSource(address, user, password);
+    public JdbcTemplate jdbcTemplate(SyncAssignment.MysqlConfig mysqlConfig) {
+        return jdbcTemplateMap.computeIfAbsent(mysqlConfig.getAddress(), ignore -> {
+            DataSource dataSource = new DriverManagerDataSource(mysqlConfig.getAddress(),
+                    mysqlConfig.getUsername(), mysqlConfig.getPassword());
             return new JdbcTemplate(dataSource);
         });
+    }
+
+    public SolrClient solrClient() {
+        return solrClient;
     }
 }

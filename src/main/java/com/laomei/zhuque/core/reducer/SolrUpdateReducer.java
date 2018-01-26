@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * create document with context and update solr collection
@@ -28,6 +29,8 @@ import java.util.Map;
  **/
 public class SolrUpdateReducer implements Reducer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrUpdateReducer.class);
+
+    private AtomicBoolean isClosed;
 
     private String solrCollectionName;
 
@@ -47,6 +50,7 @@ public class SolrUpdateReducer implements Reducer {
     public SolrUpdateReducer(@NotNull String solrCollectionName, @NotNull SolrClient solrClient) throws InitSchemaFailedException {
         this.solrCollectionName = solrCollectionName;
         this.solrClient = solrClient;
+        isClosed = new AtomicBoolean(false);
         SchemaHelper schemaHelper = new SolrSchemaHepler(solrCollectionName, solrClient);
         try {
             schemaHelper.init();
@@ -66,17 +70,20 @@ public class SolrUpdateReducer implements Reducer {
 
     @Override
     public void reduce(Collection<Map<String, Object>> contexts) {
+        if (isClosed.get()) return;
         ringBuffer.publishEvent(TRANSLATOR, contexts);
     }
 
     private void updateSolr(Collection<Map<String, Object>> contexts) {
         List<SolrInputDocument> documents = new ArrayList<>(contexts.size());
         for (Map<String, Object> context : contexts) {
+            if (isClosed.get()) return;
             SolrInputDocument doc = getSolrDocWithContext(context);
             if (doc != null) {
                 documents.add(doc);
             }
         }
+        if (isClosed.get()) return;
         if (!documents.isEmpty()) {
             updateSolrWithDocs(documents);
         }
@@ -107,7 +114,9 @@ public class SolrUpdateReducer implements Reducer {
     }
 
     private void getSolrDocWithContext(Map<String, Object> context, SolrInputDocument document) {
+        if (isClosed.get()) return;
         for (Map.Entry<String, Object> entry : context.entrySet()) {
+            if (isClosed.get()) return;
             String field = entry.getKey();
             Object value = entry.getValue();
             if (value instanceof Map) {
@@ -124,9 +133,14 @@ public class SolrUpdateReducer implements Reducer {
 
     @Override
     public void close() {
-        disruptor.shutdown();
-        solrSchemas.clear();
-        solrClient = null;
+        if (isClosed.compareAndSet(false, true)) {
+            disruptor.shutdown();
+            solrSchemas.clear();
+            solrClient = null;
+            disruptor = null;
+            ringBuffer = null;
+            solrSchemas = null;
+        }
     }
 
     // belows are contexts wrapper for disruptor

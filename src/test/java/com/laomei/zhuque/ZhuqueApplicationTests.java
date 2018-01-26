@@ -12,7 +12,11 @@ public class ZhuqueApplicationTests {
 
     @Test
     public void testSyncTaskMetadataYaml() {
-        String str = "processor:\n" +
+        String str = "mysql:\n" +
+                "  address: xxx\n" +
+                "  username: xxx\n" +
+                "  password: xxx\n" +
+                "processor:\n" +
                 "  topicConfigs:\n" +
                 "    - topic: topicX\n" +
                 "      dataTrans:\n" +

@@ -8,6 +8,9 @@ import java.util.Map;
  */
 public interface Reducer {
 
+    String SOLR_UPDATE_CLAZZ = "SolrUpdateClass";
+    String SOLR_DELETE_CLAZZ = "SolrDeleteClass";
+
     /**
      * update solr, mysql or others with contexts;
      * @param contexts the value for make document

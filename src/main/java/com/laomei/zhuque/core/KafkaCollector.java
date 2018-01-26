@@ -50,6 +50,7 @@ public class KafkaCollector implements Collector {
     public void close() {
         if (kafkaConsumer != null) {
             kafkaConsumer.close();
+            subscribedTopics.clear();
         }
     }
 
@@ -68,7 +69,7 @@ public class KafkaCollector implements Collector {
             GenericRecord value = record.value();
             Object beforeValue = value.get(FIELD_BEFORE);
             Object afterValue = value.get(FIELD_AFTER);
-            kafkaRecords.add(new KafkaRecord(topic, new KafkaRecord.PreProcessRecord(beforeValue, afterValue)));
+            kafkaRecords.add(new KafkaRecord(topic, beforeValue, afterValue));
         }
         return kafkaRecords;
     }

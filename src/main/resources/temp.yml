@@ -1,3 +1,7 @@
+mysql:
+  address: xxx
+  username: xxx
+  password: xxx
 processor:
   topicConfigs:
     - topic: topicX
