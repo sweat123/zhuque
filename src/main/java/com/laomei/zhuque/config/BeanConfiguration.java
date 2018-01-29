@@ -3,23 +3,14 @@ package com.laomei.zhuque.config;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 /**
  * @author luobo
  */
 @Configuration
 public class BeanConfiguration {
-
-    @Bean
-    public KafkaProducer<?, ?> kafkaProducer(KafkaProperties props) {
-        Map<String, Object> config = props.buildKafkaProducerProps();
-        return new KafkaProducer<>(config);
-    }
 
     /**
      * zookeeper client

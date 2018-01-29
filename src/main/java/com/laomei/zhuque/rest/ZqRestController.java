@@ -1,6 +1,5 @@
 package com.laomei.zhuque.rest;
 
-import com.laomei.zhuque.config.KafkaProperties;
 import com.laomei.zhuque.core.SyncAssignment;
 import com.laomei.zhuque.exception.NotFindException;
 import com.laomei.zhuque.exception.NotValidationException;
@@ -21,9 +20,6 @@ public class ZqRestController {
 
     @Autowired
     private ZkService zkService;
-
-    @Autowired
-    private KafkaProperties kafkaProperties;
 
     @GetMapping(value = "/")
     public Result<List<String>> getTasks() {

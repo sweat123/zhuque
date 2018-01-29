@@ -1,17 +1,18 @@
 package com.laomei.zhuque.rest;
 
 import com.laomei.zhuque.config.ZqInstanceFactory;
+import com.laomei.zhuque.core.Scheduler;
 import com.laomei.zhuque.core.SyncAssignment;
-import com.laomei.zhuque.exception.NotFindException;
-import com.laomei.zhuque.exception.NotValidationException;
-import com.laomei.zhuque.util.StrUtil;
+import com.laomei.zhuque.exception.*;
 import com.laomei.zhuque.util.ZhuQueZkPathEnum;
 import com.laomei.zhuque.util.ZkUtil;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author luobo
@@ -21,9 +22,27 @@ public class ZkService {
 
     private CuratorFramework zkCli;
 
+    private ExecutorService threadPool;
+
+    private Set<String> taskNameStore;
+
+    private Map<String, Scheduler> schedulersStore;
+
+    private Map<String, SyncAssignment> assignmentStore;
+
+    private Map<String, Future> futureStore;
+
+    @Autowired
+    private ZqInstanceFactory factory;
+
     @Autowired
     public ZkService(ZqInstanceFactory factory) {
         zkCli = factory.zkClient();
+        taskNameStore = new HashSet<>();
+        schedulersStore = new HashMap<>();
+        futureStore = new HashMap<>();
+        assignmentStore = new HashMap<>();
+        threadPool = Executors.newCachedThreadPool(r -> new Thread(r, "ZhuQue-assignment-thread"));
     }
 
     /**
@@ -57,22 +76,87 @@ public class ZkService {
      * @return task configuration or empty string
      * @throws NotValidationException the configuration of task is not valid
      */
-    public String createTask(String taskName, String configuration) throws NotValidationException {
+    public synchronized String createTask(String taskName, String configuration) throws NotValidationException {
+        if (taskNameStore.contains(taskName)) {
+            return "the name of assignment is already exist";
+        }
         AssignmentValidator validator = AssignmentValidator.getValidator();
         if (validator.isValid(configuration)) {
             SyncAssignment assignment = SyncAssignment.newSyncTaskMetadata(configuration);
-            //create task with configuration
+            try {
+                Scheduler scheduler = Scheduler.newScheduler(assignment, factory);
+                taskNameStore.add(taskName);
+                schedulersStore.put(taskName, scheduler);
+                assignmentStore.put(taskName, assignment);
+                Future future = threadPool.submit(scheduler::start);
+                futureStore.put(taskName, future);
+            } catch (UnknownReducerClazzException e) {
+                releaseResources(taskName);
+                removeTaskNameFromStore(taskName);
+                return "the reducer clazz in configuration is not correct";
+            } catch (NullReducerClazzException e) {
+                releaseResources(taskName);
+                removeTaskNameFromStore(taskName);
+                return "the reducer clazz can't be empty";
+            } catch (InitSchemaFailedException e) {
+                releaseResources(taskName);
+                removeTaskNameFromStore(taskName);
+                return "init schemas failed; " + e;
+            } catch (Exception e) {
+                releaseResources(taskName);
+                removeTaskNameFromStore(taskName);
+                return "unknown error; " + e;
+            }
             return configuration;
         }
-        return StrUtil.EMPTY_STR;
+        return "The configuration of assignment is not correct;";
     }
 
-    public String deleteTask(String taskName) throws NotFindException {
+    public synchronized String deleteTask(String taskName) throws NotFindException {
         String taskPath = ZhuQueZkPathEnum.TASK_ROOT_PATH + "/" + taskName;
         if (!ZkUtil.ensurePath(zkCli, taskPath)) {
             throw new NotFindException("sync assignment not exist; please check your input name;");
         }
         //here we need delete task node; but firstly we should set task state deleted;
         return null;
+    }
+
+    public synchronized void clear() {
+        for (String name : taskNameStore) {
+            releaseResources(name);
+        }
+        taskNameStore.clear();
+        taskNameStore = null;
+        schedulersStore = null;
+        futureStore = null;
+        assignmentStore = null;
+    }
+
+    private void releaseResources(String taskName) {
+        removeAssignmentFromStore(taskName);
+        Scheduler scheduler = schedulersStore.get(taskName);
+        removeSchedulerFromStore(taskName);
+        scheduler.close();
+        Future future = futureStore.get(taskName);
+        removeFutureFromStore(taskName);
+        while (future != null && !future.isDone()) {
+            LockSupport.parkNanos(1000000);
+        }
+    }
+
+    private void removeTaskNameFromStore(String taskName) {
+        taskNameStore.remove(taskName);
+    }
+
+    private void removeSchedulerFromStore(String taskName) {
+        schedulersStore.remove(taskName);
+    }
+
+    private void removeAssignmentFromStore(String taskName) {
+        assignmentStore.remove(taskName);
+    }
+
+    private void removeFutureFromStore(String taskName) {
+        futureStore.remove(taskName);
     }
 }

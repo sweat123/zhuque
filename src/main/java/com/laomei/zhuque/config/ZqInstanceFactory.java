@@ -4,9 +4,7 @@ import com.laomei.zhuque.core.SyncAssignment;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -24,9 +22,6 @@ public class ZqInstanceFactory {
 
     @Autowired
     private CuratorFramework zkCli;
-
-    @Autowired
-    private KafkaProducer<?, ?> kafkaProducer;
 
     @Autowired
     private KafkaProperties props;
@@ -51,10 +46,6 @@ public class ZqInstanceFactory {
         } else {
             throw new NullPointerException("kafka consumer properties can't be null;");
         }
-    }
-
-    public KafkaProducer<?, ?> kafkaProducer() {
-        return kafkaProducer;
     }
 
     /**
