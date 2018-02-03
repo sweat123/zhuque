@@ -7,22 +7,25 @@ public interface ZhuQueConstants {
     /**
      *  a gt b ==> a > b
      */
-    String GT = "gt";
+    public static String GT = "gt";
 
     /**
      * a gte b ==> a >= b
      */
-    String GTE = "gte";
+    public static String GTE = "gte";
 
     /**
      * a lt b ==> a < b
      */
-    String LT = "lt";
+    public static String LT = "lt";
 
     /**
      * a lte b ==> a <= b
      */
-    String LTE = "lte";
+    public static String LTE = "lte";
 
-    String SOLR_CONTEXT_ID = "id";
+    /**
+     * id in solr collection; this field must be exist;
+     */
+    public static String SOLR_CONTEXT_ID = "id";
 }

@@ -19,17 +19,17 @@ import java.util.List;
 public class ZqRestController {
 
     @Autowired
-    private ZkService zkService;
+    private AssignmentService assignmentService;
 
     @GetMapping(value = "/")
     public Result<List<String>> getTasks() {
-        return Result.ok(zkService.getTasks());
+        return Result.ok(assignmentService.getTasks());
     }
 
     @GetMapping(value = "/{taskName}")
     public Result<?> getTask(@PathVariable String taskName) {
         try {
-            String config = zkService.getTask(taskName);
+            String config = assignmentService.getTask(taskName);
             return Result.ok(new SyncAssignmentVo(taskName, SyncAssignment.newSyncTaskMetadata(config)));
         } catch (NotFindException e) {
             return Result.notFount("message: " + e.getMessage());
@@ -39,7 +39,7 @@ public class ZqRestController {
     @PostMapping(value = "/{taskName}")
     public Result<?> createTask(@PathVariable String taskName, @RequestBody String config) {
         try {
-            zkService.createTask(taskName, config);
+            assignmentService.createTask(taskName, config);
         } catch (NotValidationException e) {
             return Result.badRequest("message: " + e.getMessage() + "\ncause: " + e.getCause());
         }
@@ -49,7 +49,7 @@ public class ZqRestController {
     @DeleteMapping(value = "/{taskName}")
     public Object deleteTask(@PathVariable String taskName) {
         try {
-            zkService.deleteTask(taskName);
+            assignmentService.deleteTask(taskName);
         } catch (NotFindException e) {
             return Result.notFount("message: " + e.getMessage());
         }

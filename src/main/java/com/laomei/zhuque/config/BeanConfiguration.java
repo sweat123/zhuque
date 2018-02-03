@@ -14,14 +14,14 @@ public class BeanConfiguration {
 
     /**
      * zookeeper client
-     * @param zkPropperties zookeeper properties in application.yml
+     * @param zkProperties zookeeper properties in application.yml
      * @return zkClient
      */
     @Bean
-    public CuratorFramework zkClient(ZkPropperties zkPropperties) {
+    public CuratorFramework zkClient(ZkProperties zkProperties) {
         return CuratorFrameworkFactory
                 .builder()
-                .connectString(zkPropperties.getZkUrl())
+                .connectString(zkProperties.getZkUrl())
                 .sessionTimeoutMs(5000)
                 .connectionTimeoutMs(5000)
                 .retryPolicy(new ExponentialBackoffRetry(1000, 3))

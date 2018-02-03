@@ -18,7 +18,7 @@ import java.util.concurrent.locks.LockSupport;
  * @author luobo
  **/
 @Component
-public class ZkService {
+public class AssignmentService {
 
     private CuratorFramework zkCli;
 
@@ -36,7 +36,7 @@ public class ZkService {
     private ZqInstanceFactory factory;
 
     @Autowired
-    public ZkService(ZqInstanceFactory factory) {
+    public AssignmentService(ZqInstanceFactory factory) {
         zkCli = factory.zkClient();
         taskNameStore = new HashSet<>();
         schedulersStore = new HashMap<>();
