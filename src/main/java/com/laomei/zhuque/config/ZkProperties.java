@@ -10,7 +10,15 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(value = "zhuque.zookeeper")
-public class ZkPropperties {
+public class ZkProperties {
 
     private String zkUrl;
+
+    private Integer sessionTimeoutMs;
+
+    private Integer connectTimeoutMs;
+
+    private Integer retryTimes;
+
+    private Integer baseSleepTimeMs;
 }
