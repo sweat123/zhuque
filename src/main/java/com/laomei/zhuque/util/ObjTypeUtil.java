@@ -2,6 +2,8 @@ package com.laomei.zhuque.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,6 +16,29 @@ import java.util.TimeZone;
  * @author luobo
  */
 public class ObjTypeUtil {
+
+    public static Class getDataType(String clazz) {
+        switch (clazz.toLowerCase()) {
+        case "tinyint":
+        case "smallint":
+        case "mediumint": return Integer.class;
+        case "bit": return Boolean.class;
+        case "float": return Float.class;
+        case "double": return Double.class;
+        case "blob": return byte[].class;
+        case "text":
+        case "varchar":
+        case "char": return String.class;
+        case "int": return Long.class;
+        case "bigint": return BigInteger.class;
+        case "decimal": return BigDecimal.class;
+        case "date": return Date.class;
+        case "time": return Time.class;
+        case "timestamp":
+        case "datetime": return Timestamp.class;
+        default: return String.class;
+        }
+    }
 
     public static Object convert(Object obj, Class transToClazz) {
         if (obj instanceof Number) {
