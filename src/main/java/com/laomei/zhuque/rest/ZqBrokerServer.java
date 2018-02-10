@@ -49,25 +49,27 @@ public class ZqBrokerServer {
      * start broker server; We will create root node and tasks node if they are not exist;
      */
     public void start() {
-        String rootNodePath = ZqZkProps.Path.ZHU_QUE_ROOT_NODE;
         String taskNodePath = ZqZkProps.Path.ZHU_QUE_TASKS_NODE;
-        if (!ZkUtil.ensurePath(zkClient, rootNodePath)) {
-            ZkUtil.createPersistentPathWithoutParent(zkClient, rootNodePath);
-        }
         if (!ZkUtil.ensurePath(zkClient, taskNodePath)) {
-            ZkUtil.createPersistentPathWithoutParent(zkClient, taskNodePath);
+            ZkUtil.createPersistentPathWithParent(zkClient, taskNodePath);
         }
         LOGGER.info("ZhuQue broker server start...");
     }
 
     public List<String> getAllAssignments() {
         String taskNodePath = ZqZkProps.Path.ZHU_QUE_TASKS_NODE;
-        List<String> assignments = ZkUtil.getAllChildren(zkClient, taskNodePath);
+        List<String> assignments = ZkUtil.getChildren(zkClient, taskNodePath);
         return assignments == null ? Collections.emptyList() : assignments;
     }
 
-    public boolean postAssignment(String assignmentName, String assignmentConfiguration) {
-        if (!validator.validate(assignmentConfiguration)) {
+    public String getAssignment(String name) {
+        String taskNodePath = ZkUtil.mergePathWith(ZqZkProps.Path.ZHU_QUE_TASKS_NODE, name);
+        byte[] nodeData = ZkUtil.getNodeData(zkClient, taskNodePath);
+        return nodeData == null ? null : new String(nodeData);
+    }
+
+    public synchronized boolean postAssignment(String assignmentName, String assignment) {
+        if (!validator.validate(assignment)) {
             return false;
         }
         //create node /zhuque/tasks/xxx
@@ -77,10 +79,10 @@ public class ZqBrokerServer {
             return false;
         }
         LOGGER.info("create assignment {} node succeed;", assignmentName);
-        return ZkUtil.createPersistentPathWithoutParent(zkClient, assignmentNodePath);
+        return ZkUtil.createPersistentPathWithoutParent(zkClient, assignmentNodePath, assignment.getBytes());
     }
 
-    public boolean deleteAssignment(String assignmentName) {
+    public synchronized boolean deleteAssignment(String assignmentName) {
         String assignmentNodePath = ZkUtil.mergePathWith(ZqZkProps.Path.ZHU_QUE_TASKS_NODE, assignmentName);
         if (!ZkUtil.ensurePath(zkClient, assignmentNodePath)) {
             LOGGER.error("assignment {} not exist;", assignmentName);

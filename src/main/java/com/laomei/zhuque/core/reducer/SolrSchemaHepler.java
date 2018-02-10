@@ -1,4 +1,4 @@
-package com.laomei.zhuque.core.reducer.schema;
+package com.laomei.zhuque.core.reducer;
 
 import com.laomei.zhuque.util.SchemaUtil;
 import org.apache.solr.client.solrj.SolrClient;

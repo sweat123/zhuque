@@ -35,20 +35,33 @@ public class Scheduler implements AutoCloseable {
     private AtomicBoolean isClose;
 
     public static Scheduler newScheduler(SyncAssignment assignment, ZqInstanceFactory factory)
-            throws InitSchemaFailedException, UnknownReducerClazzException, NullReducerClazzException {
-        KafkaCollector collector = new KafkaCollector(factory.kafkaConsumer());
-        JdbcTemplate jdbcTemplate = factory.jdbcTemplate(assignment.getMysql());
-        KafkaRecordProcessor processor = new KafkaRecordProcessor(assignment.getProcessor().getTopicConfigs(),
-                                                                  jdbcTemplate);
-        Reducer reducer = getReducerWithAssignment(assignment, factory.solrClient());
+            throws UnknownReducerClazzException, InitSchemaFailedException, NullReducerClazzException {
+        KafkaCollector collector = null;
+        KafkaRecordProcessor processor = null;
         Executor executor = null;
-        List<EntitySql> entitySqls = assignment.getProcessor().getEntitySqls();
-        if (entitySqls != null && !entitySqls.isEmpty()) {
-            executor = new SqlExecutor(entitySqls, jdbcTemplate, reducer);
-        } else {
-            executor = new NoopExecutor(reducer);
+        try {
+            collector = new KafkaCollector(factory.kafkaConsumer());
+            JdbcTemplate jdbcTemplate = factory.jdbcTemplate(assignment.getMysql());
+            processor = new KafkaRecordProcessor(assignment.getProcessor().getTopicConfigs(),
+                    jdbcTemplate);
+            Reducer reducer = getReducerWithAssignment(assignment, factory.solrClient());
+            List<EntitySql> entitySqls = assignment.getProcessor().getEntitySqls();
+            if (entitySqls != null && !entitySqls.isEmpty()) {
+                executor = new SqlExecutor(entitySqls, jdbcTemplate, reducer);
+            } else {
+                executor = new NoopExecutor(reducer);
+            }
+            return new Scheduler(collector, processor, executor);
+        } catch (UnknownReducerClazzException | NullReducerClazzException | InitSchemaFailedException ex) {
+            throw ex;
+        } finally {
+            if (collector != null)
+                collector.close();
+            if (processor != null)
+                processor.close();
+            if (executor != null)
+                executor.close();
         }
-        return new Scheduler(collector, processor, executor);
     }
 
     /**

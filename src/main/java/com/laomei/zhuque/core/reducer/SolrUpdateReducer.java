@@ -1,7 +1,5 @@
 package com.laomei.zhuque.core.reducer;
 
-import com.laomei.zhuque.core.reducer.schema.SchemaHelper;
-import com.laomei.zhuque.core.reducer.schema.SolrSchemaHepler;
 import com.laomei.zhuque.exception.InitSchemaFailedException;
 import com.laomei.zhuque.util.ObjTypeUtil;
 import com.lmax.disruptor.EventFactory;
