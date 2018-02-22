@@ -35,9 +35,12 @@ public class ZqBrokerClient {
 
     private ConcurrentHashMap<String, Scheduler> schedulers;
 
+    private ConcurrentHashMap<String, PathChildrenCache> pathChildCacheMap;
+
     public ZqBrokerClient(ZkProperties zkProperties, ZqInstanceFactory factory) {
         this.tasksRootNode = ZqZkProps.Path.ZHU_QUE_TASKS_NODE;
         this.schedulers = new ConcurrentHashMap<>();
+        this.pathChildCacheMap = new ConcurrentHashMap<>();
         this.factory = factory;
         if (zkProperties.getZkUrl() == null) {
             throw new NullPointerException("zk host can't be null;");
@@ -76,13 +79,27 @@ public class ZqBrokerClient {
             case CHILD_ADDED:
                 //new assignment is added
                 tryLockAndStartAssignment(client, event.getData().getPath(), event.getData().getData());
+                break;
             case CHILD_UPDATED:
-                //assignment is updated
+                //TODO: assignment is updated
+                break;
             case CHILD_REMOVED:
-                //assignment is deleted
+                //TODO: assignment is deleted
+                deleteAssignment(client, event.getData().getPath());
+                break;
             default: break;
             }
         });
+        addPathChildCacheInContainerWithPath(tasksRootNode, cache);
+    }
+
+    private void deleteAssignment(CuratorFramework zkClient, String path) {
+        String name = StrUtil.subStrAfterLastAssignChar(path, '/');
+        if (!isTaskInContainerWithTaskName(name)) {
+            return;
+        }
+        closePathChildCache(name);
+        removeTaskFromContainerAndStopTask(name);
     }
 
     private void tryLockAndStartAssignment(CuratorFramework zkClient, String path, byte[] data) {
@@ -122,8 +139,10 @@ public class ZqBrokerClient {
             case CHILD_REMOVED:
                 //lock is removed
                 tryRestartAssignment(client, event.getData().getPath(), event.getData().getData());
+                break;
             case CHILD_UPDATED:
-                //data in lock node is changed
+                //TODO: data in lock node is changed
+                break;
             default: break;
             }
         });
@@ -178,8 +197,12 @@ public class ZqBrokerClient {
         addTaskInContainerWithTaskName(name, scheduler);
     }
 
-    private void addTaskInContainerWithTaskName(String taskName, Scheduler scheduler) {
-        schedulers.put(taskName, scheduler);
+    private boolean isTaskInContainerWithTaskName(String name) {
+        return schedulers.get(name) != null;
+    }
+
+    private void addTaskInContainerWithTaskName(String name, Scheduler scheduler) {
+        schedulers.put(name, scheduler);
     }
 
     private void removeTaskFromContainerAndStopTask(String name) {
@@ -192,5 +215,21 @@ public class ZqBrokerClient {
 
     private boolean isDeleteAssignment(byte[] data) {
         return ZqZkProps.AssignmentState.WAIT_FOR_CLOSE.equals(new String(data));
+    }
+
+    private void addPathChildCacheInContainerWithPath(String path, PathChildrenCache cache) {
+        pathChildCacheMap.put(path, cache);
+    }
+
+    private void closePathChildCache(String path) {
+        PathChildrenCache cache = pathChildCacheMap.get(path);
+        if (null != cache) {
+            try {
+                cache.close();
+            } catch (Exception e) {
+                LOGGER.error("close pathChildCache failed; task node path: {}", path, e);
+            }
+            pathChildCacheMap.remove(path);
+        }
     }
 }
