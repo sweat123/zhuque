@@ -8,6 +8,7 @@ import com.laomei.zhuque.exception.BrokerClientRegistryException;
 import com.laomei.zhuque.exception.InitSchemaFailedException;
 import com.laomei.zhuque.exception.NullReducerClazzException;
 import com.laomei.zhuque.exception.UnknownReducerClazzException;
+import com.laomei.zhuque.util.JsonUtil;
 import com.laomei.zhuque.util.StrUtil;
 import com.laomei.zhuque.util.ZkUtil;
 import org.apache.curator.framework.CuratorFramework;
@@ -21,6 +22,21 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * lock node state topology
+ *
+ * |========================================|
+ * |                                        |
+ * | RUNNING ===> NEED_UPDATE ===> RUNNING  |
+ * |    ||  \\                     /\       |
+ * |    ||    \\                  //        |
+ * |    ||      \\               //         |
+ * |    \/        \\            //          |
+ * | WAIT_FOR_CLOSE \\         //           |
+ * |                  \\      //            |
+ * |                   \/    //             |
+ * |                  NOT_RUNNING           |
+ * |                                        |
+ * |========================================|
  * @author luobo on 2018/2/3 13:07
  */
 @Component
@@ -77,20 +93,30 @@ public class ZqBrokerClient {
         cache.getListenable().addListener((client, event) -> {
             switch (event.getType()) {
             case CHILD_ADDED:
-                //new assignment is added
                 tryLockAndStartAssignment(client, event.getData().getPath(), event.getData().getData());
                 break;
             case CHILD_UPDATED:
-                //TODO: assignment is updated
+                updateAssignment(client, event.getData().getPath());
                 break;
             case CHILD_REMOVED:
-                //TODO: assignment is deleted
                 deleteAssignment(client, event.getData().getPath());
                 break;
             default: break;
             }
         });
         addPathChildCacheInContainerWithPath(tasksRootNode, cache);
+    }
+
+    private void updateAssignment(CuratorFramework zkClient, String path) {
+        // -------------------------------------------------------------------------------------------------
+        // | 1. only need set lock data NEED_UPDATE;                                                       |
+        // | 2. PathCacheListener at lock node will catch lock data update event;                          |
+        // | 3. check the data in lock node, If state equals NEED_UPDATE, then lock node will be released; |
+        // | 4. when lock is released, all healthy broker will try lock assignment;                        |
+        // | 5. now new task is started;                                                                   |
+        // -------------------------------------------------------------------------------------------------
+        byte[] data = JsonUtil.convertObjToJsonByteArr(ZqZkProps.AssignmentState.NEED_UPDATE, ZqZkProps.AssignmentState.STATE);
+        ZkUtil.ZkLock.setLockData(zkClient, path, data);
     }
 
     private void deleteAssignment(CuratorFramework zkClient, String path) {
@@ -137,15 +163,37 @@ public class ZqBrokerClient {
         cache.getListenable().addListener((client, event) -> {
             switch (event.getType()) {
             case CHILD_REMOVED:
-                //lock is removed
                 tryRestartAssignment(client, event.getData().getPath(), event.getData().getData());
                 break;
             case CHILD_UPDATED:
                 //TODO: data in lock node is changed
+                responseToLockStateUpdate(client, event.getData().getPath(), event.getData().getData());
                 break;
             default: break;
             }
         });
+        addPathChildCacheInContainerWithPath(path, cache);
+    }
+
+    private void responseToLockStateUpdate(CuratorFramework zkClient, String path, byte[] data) {
+        String assignmentPath = StrUtil.subStrBeforeLastAssignChar(path, '/');
+        String assignmentName = StrUtil.subStrAfterLastAssignChar(assignmentPath, '/');
+        if (!isTaskInContainerWithTaskName(assignmentName)) {
+            //no assignment instance in this broker;
+            return;
+        }
+        if (isNeedUpdate(data)) {
+            LOGGER.info("assignment {} is updated; we need stop and reread assignment.", assignmentName);
+            //1. remove and stop task;
+            //2. release lock;
+            removeTaskFromContainerAndStopTask(assignmentName);
+            ZkUtil.ZkLock.deleteLock(zkClient, assignmentPath);
+        }
+    }
+
+    private boolean isNeedUpdate(byte[] data) {
+        String state = JsonUtil.convertJsonByteArrToAssignObj(data, ZqZkProps.AssignmentState.STATE, String.class);
+        return ZqZkProps.AssignmentState.NEED_UPDATE.equals(state);
     }
 
     private void tryRestartAssignment(CuratorFramework zkClient, String lockPath, byte[] data) {
