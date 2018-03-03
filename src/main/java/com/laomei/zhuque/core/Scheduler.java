@@ -40,7 +40,11 @@ public class Scheduler implements AutoCloseable {
         KafkaRecordProcessor processor = null;
         Executor executor = null;
         try {
-            collector = new KafkaCollector(factory.kafkaConsumer());
+            String offsetPolicy = assignment.getProcessor().getAutoOffsetReset();
+            if (offsetPolicy == null) {
+                offsetPolicy = "latest";
+            }
+            collector = new KafkaCollector(factory.kafkaConsumer(offsetPolicy));
             JdbcTemplate jdbcTemplate = factory.jdbcTemplate(assignment.getMysql());
             processor = new KafkaRecordProcessor(assignment.getProcessor().getTopicConfigs(),
                     jdbcTemplate);

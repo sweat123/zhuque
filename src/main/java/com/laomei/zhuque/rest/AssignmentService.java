@@ -51,7 +51,7 @@ public class AssignmentService {
      */
     public List<String> getTasks() {
         String taskRootPath = ZhuQueZkPathEnum.TASK_ROOT_PATH.getPath();
-        return ZkUtil.getAllChildren(zkCli, taskRootPath);
+        return ZkUtil.getChildren(zkCli, taskRootPath);
     }
 
     /**

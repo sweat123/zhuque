@@ -1,0 +1,7 @@
+zhuque:
+  zookeeper:
+    zk-url: 182.254.220.85:2181
+    retry-times: 3
+    base-sleep-time-ms: 1000
+    connect-timeout-ms: 3000
+    session-timeout-ms: 3000

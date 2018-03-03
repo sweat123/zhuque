@@ -31,7 +31,6 @@ public class SyncAssignment {
 
     @Data
     public static class SyncAssignmentProcessor {
-        private String kafkaTopic;
         private String autoOffsetReset;
         private List<TopicConfig> topicConfigs;
         private List<EntitySql> entitySqls;
