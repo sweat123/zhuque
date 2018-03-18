@@ -40,9 +40,10 @@ public class ZqInstanceFactory {
      * kafka consumer for collecting record
      * @return KafkaConsumer
      */
-    public KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer(String offsetPolicy) {
+    public KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer(String groupId, String offsetPolicy) {
         if (props != null) {
             Map<String, Object> config = props.buildKafkaConsumerProps();
+            config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
             config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offsetPolicy);
             return new KafkaConsumer<>(config);
         } else {

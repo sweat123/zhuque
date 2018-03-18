@@ -1,6 +1,7 @@
 package com.laomei.zhuque.config;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,6 +17,7 @@ import java.util.Map;
 @Data
 @Component
 @ConfigurationProperties(prefix = "zhuque.kafka")
+@NoArgsConstructor
 public class KafkaProperties {
 
     private List<String> kafkaBootstrap;
@@ -32,18 +34,19 @@ public class KafkaProperties {
     }
 
     public Map<String, Object> buildKafkaConsumerProps() {
-        KafkaConsumerProps kafkaConsumerProps = new KafkaConsumerProps();
         Map<String, Object> props = buildCommonProps();
-        props.putAll(kafkaConsumerProps.buildProps());
+        props.putAll(consumer.buildProps());
         return props;
     }
 
     @Data
-    static class KafkaConsumerProps {
+    @NoArgsConstructor
+    public static class KafkaConsumerProps {
+        static final String SCHEMA_REGISTRY_URL = "schema.registry.url";
 
-        private Class<?> keySerializer;
+        private Class<?> keySerializer = io.confluent.kafka.serializers.KafkaAvroDeserializer.class;
 
-        private Class<?> valueSerializer;
+        private Class<?> valueSerializer = io.confluent.kafka.serializers.KafkaAvroDeserializer.class;;
 
         private Integer maxPollIntervalMs;
 
@@ -56,6 +59,8 @@ public class KafkaProperties {
         private Boolean enableAutoCommit;
 
         private String autoOffsetReset;
+
+        private String schemaRegistryUrl;
 
         private Map<String, Object> otherProps;
 
@@ -84,6 +89,9 @@ public class KafkaProperties {
             }
             if (autoOffsetReset != null) {
                 props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
+            }
+            if (schemaRegistryUrl != null) {
+                props.put(SCHEMA_REGISTRY_URL, schemaRegistryUrl);
             }
             if (otherProps != null) {
                 for (Map.Entry<String, Object> entry : otherProps.entrySet()) {

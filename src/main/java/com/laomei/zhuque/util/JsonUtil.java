@@ -19,7 +19,7 @@ public class JsonUtil {
         return jsonObject.getObject(key, clazz);
     }
 
-    public static<T> byte[] convertObjToJsonByteArr(T o, String key) {
+    public static<T> byte[] convertObjToJsonByteArr(String key, T o) {
         JSONObject object = new JSONObject();
         object.put(key, o);
         return object.toJSONString().getBytes();

@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.laomei.zhuque.rest.ZqZkProps.AssignmentState.STATE;
+
 /**
  * lock node state topology
  *
@@ -72,9 +74,10 @@ public class ZqBrokerClient {
             builder.retryPolicy(new ExponentialBackoffRetry(zkProperties.getBaseSleepTimeMs(), zkProperties.getRetryTimes()));
         }
         zkClient = builder.build();
+        zkClient.start();
     }
 
-    public void registry() throws BrokerClientRegistryException {
+    public void start() throws BrokerClientRegistryException {
         String taskNodePath = ZqZkProps.Path.ZHU_QUE_TASKS_NODE;
         if (!ZkUtil.ensurePath(zkClient, taskNodePath)) {
             ZkUtil.createPersistentPathWithParent(zkClient, taskNodePath);
@@ -115,7 +118,7 @@ public class ZqBrokerClient {
         // | 4. when lock is released, all healthy broker will try lock assignment;                        |
         // | 5. now new task is started;                                                                   |
         // -------------------------------------------------------------------------------------------------
-        byte[] data = JsonUtil.convertObjToJsonByteArr(ZqZkProps.AssignmentState.NEED_UPDATE, ZqZkProps.AssignmentState.STATE);
+        byte[] data = JsonUtil.convertObjToJsonByteArr(STATE, ZqZkProps.AssignmentState.NEED_UPDATE);
         ZkUtil.ZkLock.setLockData(zkClient, path, data);
     }
 
@@ -142,7 +145,7 @@ public class ZqBrokerClient {
     }
 
     private void lockAndCreateAssignment(CuratorFramework zkClient, String path, byte[] data) {
-        byte[] state = ZqZkProps.AssignmentState.RUNNING.getBytes();
+        byte[] state = JsonUtil.convertObjToJsonByteArr(STATE, ZqZkProps.AssignmentState.RUNNING);
         boolean locked = ZkUtil.ZkLock.addLock(zkClient, path, state);
         if (!locked) {
             return;
@@ -192,7 +195,7 @@ public class ZqBrokerClient {
     }
 
     private boolean isNeedUpdate(byte[] data) {
-        String state = JsonUtil.convertJsonByteArrToAssignObj(data, ZqZkProps.AssignmentState.STATE, String.class);
+        String state = JsonUtil.convertJsonByteArrToAssignObj(data, STATE, String.class);
         return ZqZkProps.AssignmentState.NEED_UPDATE.equals(state);
     }
 
@@ -212,7 +215,7 @@ public class ZqBrokerClient {
 
         removeTaskFromContainerAndStopTask(assignmentName);
 
-        byte[] state = ZqZkProps.AssignmentState.RUNNING.getBytes();
+        byte[] state = JsonUtil.convertObjToJsonByteArr(STATE, ZqZkProps.AssignmentState.RUNNING.getBytes());
         boolean locked = ZkUtil.ZkLock.addLock(zkClient, path, state);
         if (!locked) {
             return;
@@ -230,7 +233,7 @@ public class ZqBrokerClient {
         SyncAssignment assignment = SyncAssignment.newSyncTaskMetadata(assignmentStr);
         Scheduler scheduler = null;
         try {
-            scheduler = Scheduler.newScheduler(assignment, factory);
+            scheduler = Scheduler.newScheduler(name, assignment, factory);
         } catch (InitSchemaFailedException e) {
             LOGGER.error("init schema failed; assignment name: {}", name, e);
             return;
@@ -262,7 +265,8 @@ public class ZqBrokerClient {
     }
 
     private boolean isDeleteAssignment(byte[] data) {
-        return ZqZkProps.AssignmentState.WAIT_FOR_CLOSE.equals(new String(data));
+        String state = JsonUtil.convertJsonByteArrToAssignObj(data, STATE, String.class);
+        return ZqZkProps.AssignmentState.WAIT_FOR_CLOSE.equals(state);
     }
 
     private void addPathChildCacheInContainerWithPath(String path, PathChildrenCache cache) {

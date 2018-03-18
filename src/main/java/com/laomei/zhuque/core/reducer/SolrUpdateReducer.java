@@ -52,10 +52,9 @@ public class SolrUpdateReducer implements Reducer {
         SchemaHelper schemaHelper = new SolrSchemaHepler(solrCollectionName, solrClient);
         try {
             schemaHelper.init();
-            schemaHelper.getSchema();
             solrSchemas = schemaHelper.getSchema();
         } catch (Exception e) {
-            throw new InitSchemaFailedException("Get Solr schema from collection: " + solrCollectionName + " failed;"
+            throw new InitSchemaFailedException("Get Solr schema from collection: '" + solrCollectionName + "' failed;"
                     + " Exception message: " + e);
         }
         disruptor = new Disruptor<>(new MsgEntryFactory(), 4096, r -> {
@@ -90,6 +89,7 @@ public class SolrUpdateReducer implements Reducer {
     private void updateSolrWithDocs(Collection<SolrInputDocument> documents) {
         try {
             solrClient.add(solrCollectionName, documents);
+            solrClient.commit();
         } catch (SolrServerException e) {
             LOGGER.error("update solr collection: {} failed; May be there is an error on the server", solrCollectionName, e);
         } catch (IOException e) {
@@ -169,7 +169,7 @@ public class SolrUpdateReducer implements Reducer {
         @Override
         public void onEvent(MsgEntry event, long sequence, boolean endOfBatch) throws Exception {
            reducer.updateSolr(event.contexts);
-            event.contexts = null;
+           event.contexts = null;
         }
     }
 }
