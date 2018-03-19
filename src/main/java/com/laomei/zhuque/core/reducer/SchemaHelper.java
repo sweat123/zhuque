@@ -1,4 +1,4 @@
-package com.laomei.zhuque.core.reducer.schema;
+package com.laomei.zhuque.core.reducer;
 
 import java.util.Map;
 

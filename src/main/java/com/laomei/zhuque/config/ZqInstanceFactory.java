@@ -3,6 +3,7 @@ package com.laomei.zhuque.config;
 import com.laomei.zhuque.core.SyncAssignment;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.solr.client.solrj.SolrClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,11 @@ public class ZqInstanceFactory {
      * kafka consumer for collecting record
      * @return KafkaConsumer
      */
-    public KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer() {
+    public KafkaConsumer<GenericRecord, GenericRecord> kafkaConsumer(String groupId, String offsetPolicy) {
         if (props != null) {
             Map<String, Object> config = props.buildKafkaConsumerProps();
+            config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+            config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offsetPolicy);
             return new KafkaConsumer<>(config);
         } else {
             throw new NullPointerException("kafka consumer properties can't be null;");

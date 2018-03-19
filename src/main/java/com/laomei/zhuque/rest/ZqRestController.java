@@ -5,7 +5,6 @@ import com.laomei.zhuque.exception.NotFindException;
 import com.laomei.zhuque.exception.NotValidationException;
 import com.laomei.zhuque.rest.rspdata.Result;
 import com.laomei.zhuque.rest.rspdata.SyncAssignmentVo;
-import com.laomei.zhuque.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,31 +27,31 @@ public class ZqRestController {
 
     @GetMapping(value = "/{taskName}")
     public Result<?> getTask(@PathVariable String taskName) {
-        try {
-            String config = assignmentService.getTask(taskName);
-            return Result.ok(new SyncAssignmentVo(taskName, SyncAssignment.newSyncTaskMetadata(config)));
-        } catch (NotFindException e) {
-            return Result.notFount("message: " + e.getMessage());
-        }
+        String config = assignmentService.getTask(taskName);
+        return Result.ok(new SyncAssignmentVo(taskName, SyncAssignment.newSyncTaskMetadata(config)));
     }
 
     @PostMapping(value = "/{taskName}")
     public Result<?> createTask(@PathVariable String taskName, @RequestBody String config) {
         try {
             assignmentService.createTask(taskName, config);
+            return Result.ok(SyncAssignment.newSyncTaskMetadata(config));
         } catch (NotValidationException e) {
-            return Result.badRequest("message: " + e.getMessage() + "\ncause: " + e.getCause());
+            return Result.badRequest("message: " + e);
         }
-        return Result.ok(SyncAssignment.newSyncTaskMetadata(config));
     }
 
     @DeleteMapping(value = "/{taskName}")
-    public Object deleteTask(@PathVariable String taskName) {
+    public Result<?> deleteTask(@PathVariable String taskName) {
         try {
-            assignmentService.deleteTask(taskName);
+            return Result.ok(assignmentService.deleteTask(taskName));
         } catch (NotFindException e) {
-            return Result.notFount("message: " + e.getMessage());
+            return Result.notFount("message: " + e);
         }
-        return Result.ok(StrUtil.EMPTY_STR);
+    }
+
+    @PutMapping(value = "/{taskName}")
+    public Result<String> updateTask(@PathVariable String taskName, @RequestBody String config) {
+        return Result.ok(assignmentService.updateTask(taskName, config));
     }
 }

@@ -1,4 +1,4 @@
-package com.laomei.zhuque.core.reducer.schema;
+package com.laomei.zhuque.core.reducer;
 
 import com.laomei.zhuque.util.SchemaUtil;
 import org.apache.solr.client.solrj.SolrClient;
@@ -8,6 +8,7 @@ import org.apache.solr.common.util.SimpleOrderedMap;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class SolrSchemaHepler implements SchemaHelper {
     @Override
     public Map<String, Class<?>> getSchema() throws Exception {
         NamedList<Object> namedList = solrClient.request(new SchemaRequest(), solrCollectionName);
-        SimpleOrderedMap orderedMap = (SimpleOrderedMap) namedList.get(SCHEMA);
+        LinkedHashMap orderedMap = (LinkedHashMap) namedList.get(SCHEMA);
         List<SimpleOrderedMap> fields = (List<SimpleOrderedMap>) orderedMap.get(FIELDS);
         List<SimpleOrderedMap> fieldTypes = (List<SimpleOrderedMap>) orderedMap.get(FIELD_TYPES);
         return getSchemaMap(fields, fieldTypes);
@@ -53,7 +54,9 @@ public class SolrSchemaHepler implements SchemaHelper {
         fields.forEach(k -> {
             String name = String.valueOf(k.get(NAME));
             String type = String.valueOf(k.get(TYPE));
-            fieldWithSolrType.put(name, fieldTypeMap.get(type));
+            if (!name.startsWith("_")) {
+                fieldWithSolrType.put(name, fieldTypeMap.get(type));
+            }
         });
         fieldWithSolrType.forEach((field, solrType) -> {
             schemaMap.put(field, SchemaUtil.SolrSchemaType.toJavaType(solrType));

@@ -1,0 +1,18 @@
+zhuque:
+  zookeeper:
+    zk-url: 182.254.220.85:2181
+    retry-times: 3
+    base-sleep-time-ms: 1000
+    connect-timeout-ms: 3000
+    session-timeout-ms: 3000
+  kafka:
+    kafka-bootstrap: localhost:9092
+    consumer:
+      max-poll-interval-ms: 20000
+      heartbeat-interval-ms: 20000
+      session-timeout-ms: 60000
+      max-poll-records: 50
+      enable-auto-commit: false
+      schema-registry-url: http://localhost:8082
+  solr:
+    host: http://127.0.0.1:8983/solr

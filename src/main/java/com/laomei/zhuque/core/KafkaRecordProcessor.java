@@ -37,8 +37,8 @@ public class KafkaRecordProcessor implements Processor {
 
     @Override
     public Map<String, Object> process(KafkaRecord record) {
-        String topic = record.getTopic();
-        List<Transform> transforms = topicTransforms.get(topic);
+        final String topic = record.getTopic();
+        final List<Transform> transforms = topicTransforms.get(topic);
         if (isClosed.get()) return null;
         Map<String, Object> context = makeContextWithRecord(record);
         for (Transform transform : transforms) {
@@ -54,7 +54,7 @@ public class KafkaRecordProcessor implements Processor {
     @Override
     public List<Map<String, Object>> process(final List<KafkaRecord> records) {
         if (isClosed.get()) return null;
-        List<Map<String, Object>> results = new ArrayList<>(records.size());
+        final List<Map<String, Object>> results = new ArrayList<>(records.size());
         records.forEach(kafkaRecord -> {
             if (isClosed.get()) return;
             Map<String, Object> result = process(kafkaRecord);
@@ -86,11 +86,11 @@ public class KafkaRecordProcessor implements Processor {
             if (topicConfig.getFieldTrans() != null) {
                 transforms.add(new FieldTransform(topicConfig.getFieldTrans()));
             }
-            if (topicConfig.getRemoveBeforeRecord() == null && topicConfig.getRemoveBeforeRecord()) {
+            if (topicConfig.getRemoveBeforeRecord() != null && !topicConfig.getRemoveBeforeRecord()) {
                 //default remove before record values
-                transforms.add(new RecordTransform(true));
-            } else {
                 transforms.add(new RecordTransform(false));
+            } else {
+                transforms.add(new RecordTransform(true));
             }
             if (topicConfig.getFilterTrans() != null) {
                 transforms.add(new FilterTransform(topicConfig.getFilterTrans()));

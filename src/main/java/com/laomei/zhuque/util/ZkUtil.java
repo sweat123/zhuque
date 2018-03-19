@@ -40,6 +40,21 @@ public class ZkUtil {
         }
 
         /**
+         * add assignment lock node
+         * @param zkClient CuratorFramework client
+         * @param assignmentPath assignment node path
+         * @return true if add lock succeed;
+         */
+        public static boolean addLock(CuratorFramework zkClient, String assignmentPath, byte[] data) {
+            try {
+                createEphemeralPathWithoutParent(zkClient, lockPath(assignmentPath), data);
+                return true;
+            } catch (Exception ignore) {
+                return false;
+            }
+        }
+
+        /**
          * set data of lock node;
          * @param zkClient CuratorFramework client
          * @param assignmentPath assignment node path
@@ -93,11 +108,31 @@ public class ZkUtil {
         }
     }
 
+    public static boolean createPersistentPathWithoutParent(CuratorFramework zkCli, String path, byte[] data) {
+        Preconditions.checkNotNull(zkCli);
+        Preconditions.checkNotNull(path);
+        try {
+            return zkCli.create().withMode(CreateMode.PERSISTENT).forPath(path, data) != null;
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
     public static boolean createPersistentPathWithParent(CuratorFramework zkCli, String path) {
         Preconditions.checkNotNull(zkCli);
         Preconditions.checkNotNull(path);
         try {
             return zkCli.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path) != null;
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
+    public static boolean createPersistentPathWithParent(CuratorFramework zkCli, String path, byte[] data) {
+        Preconditions.checkNotNull(zkCli);
+        Preconditions.checkNotNull(path);
+        try {
+            return zkCli.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, data) != null;
         } catch (Exception ignore) {
             return false;
         }
@@ -113,11 +148,31 @@ public class ZkUtil {
         }
     }
 
+    public static boolean createEphemeralPathWithoutParent(CuratorFramework zkCli, String path, byte[] data) {
+        Preconditions.checkNotNull(zkCli);
+        Preconditions.checkNotNull(path);
+        try {
+            return zkCli.create().withMode(CreateMode.EPHEMERAL).forPath(path, data) != null;
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
     public static boolean createEphemeralPathWithParent(CuratorFramework zkCli, String path) {
         Preconditions.checkNotNull(zkCli);
         Preconditions.checkNotNull(path);
         try {
             return zkCli.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path) != null;
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
+    public static boolean createEphemeralPathWithParent(CuratorFramework zkCli, String path, byte[] data) {
+        Preconditions.checkNotNull(zkCli);
+        Preconditions.checkNotNull(path);
+        try {
+            return zkCli.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, data) != null;
         } catch (Exception ignore) {
             return false;
         }
@@ -144,7 +199,7 @@ public class ZkUtil {
         }
     }
 
-    public static List<String> getAllChildren(CuratorFramework zkCli, String path) {
+    public static List<String> getChildren(CuratorFramework zkCli, String path) {
         Preconditions.checkNotNull(zkCli);
         Preconditions.checkNotNull(path);
         try {

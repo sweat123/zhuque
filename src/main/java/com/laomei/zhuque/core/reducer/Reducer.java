@@ -8,8 +8,8 @@ import java.util.Map;
  */
 public interface Reducer {
 
-    String SOLR_UPDATE_CLAZZ = "SolrUpdateClass";
-    String SOLR_DELETE_CLAZZ = "SolrDeleteClass";
+    String SOLR_UPDATE_REDUCER = "SolrUpdateReducer";
+    String SOLR_DELETE_REDUCER = "SolrDeleteReducer";
 
     /**
      * update solr, mysql or others with contexts;

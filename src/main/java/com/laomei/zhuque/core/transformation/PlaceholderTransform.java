@@ -3,12 +3,12 @@ package com.laomei.zhuque.core.transformation;
 import com.google.common.base.Preconditions;
 import com.laomei.zhuque.util.PlaceholderParser;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * replace placeholder with context;
@@ -17,28 +17,47 @@ import static java.util.stream.Collectors.toList;
  */
 public class PlaceholderTransform implements Transform {
     private static final String COMMA = ",";
+    private static final String AS = "AS";
 
-    private List<String> placeholders;
+    private final Map<String, String> keysWithAlias;
 
-    public PlaceholderTransform(String placeholders) {
-        Preconditions.checkNotNull(placeholders);
-        this.placeholders = Stream.of(placeholders.split(COMMA)).parallel().map(String::trim).collect(toList());
+    public PlaceholderTransform(String detail) {
+        Preconditions.checkNotNull(detail);
+        List<String> placeholders = Arrays.stream(detail.split(COMMA))
+                .map(String::trim).collect(Collectors.toList());
+        keysWithAlias = new HashMap<>(placeholders.size());
+        Consumer<String> selectKeysAndAliasAction = getKeysAndAlias(keysWithAlias);
+        placeholders.forEach(selectKeysAndAliasAction);
     }
 
     @Override
     public Map<String, Object> transform(final Map<String, Object> context) {
         Preconditions.checkNotNull(context);
-        return replacePlaceholderWithContext(context);
+        final Map<String, Object> newContext = new HashMap<>();
+        final PlaceholderParser parser = PlaceholderParser.getParser(context);
+        keysWithAlias.forEach((key, alias) -> {
+            String value = parser.replacePlaceholder(key);
+            newContext.put(alias, value);
+        });
+        return newContext;
     }
 
-    private Map<String, Object> replacePlaceholderWithContext(Map<String, Object> context) {
-        PlaceholderParser placeholderParser = PlaceholderParser.getParser(context);
-        Map<String, Object> result = new HashMap<>(placeholders.size());
-        for (String placeholder : placeholders) {
-            String placeholderName = placeholder.substring(2, placeholder.length() - 1);
-            String placeholderValue = placeholderParser.replacePlaceholder(placeholder);
-            result.put(placeholderName, placeholderValue);
-        }
-        return result;
+    private Consumer<String> getKeysAndAlias(final Map<String, String> map) {
+        return str -> {
+            if (str.contains(AS) || str.contains(AS.toLowerCase())) {
+                String as = str.contains(AS) ? AS : AS.toLowerCase();
+                //${abc} as ABC => key: ${abc}, alia: ABC
+                String[] arr = Arrays.stream(str.split(as))
+                        .map(String::trim)
+                        .collect(Collectors.toList())
+                        .toArray(new String[0]);
+                map.put(arr[0], arr[1]);
+            } else {
+                //${xxx} => key: ${xxx}, alias: xxx
+                String trimStr = str.trim();
+                String alias = trimStr.substring(2, trimStr.length() - 1);
+                map.put(trimStr, alias);
+            }
+        };
     }
 }
