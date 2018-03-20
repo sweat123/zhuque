@@ -4,7 +4,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,6 +32,6 @@ public class BeanConfiguration {
 
     @Bean
     public SolrClient solrClient(SolrProperties properties) {
-        return new HttpSolrClient.Builder().withBaseSolrUrl(properties.getHost()).build();
+        return new CloudSolrClient.Builder().withSolrUrl(properties.getHost()).build();
     }
 }

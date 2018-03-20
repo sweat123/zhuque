@@ -89,7 +89,6 @@ public class SolrUpdateReducer implements Reducer {
     private void updateSolrWithDocs(Collection<SolrInputDocument> documents) {
         try {
             solrClient.add(solrCollectionName, documents);
-            solrClient.commit();
         } catch (SolrServerException e) {
             LOGGER.error("update solr collection: {} failed; May be there is an error on the server", solrCollectionName, e);
         } catch (IOException e) {
