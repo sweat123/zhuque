@@ -108,33 +108,35 @@ public class Scheduler implements AutoCloseable {
     }
 
     public void start() {
-        try {
-            LOGGER.info("Scheduler start...");
-            while (!isClose.get()) {
-                List<KafkaRecord> kafkaRecords = kafkaCollector.collect();
-                if (isClose.get()) {
-                    break;
+        new Thread(() -> {
+            try {
+                LOGGER.info("Scheduler start...");
+                while (!isClose.get()) {
+                    List<KafkaRecord> kafkaRecords = kafkaCollector.collect();
+                    if (isClose.get()) {
+                        break;
+                    }
+                    if (kafkaRecords.isEmpty()) {
+                        continue;
+                    }
+                    List<Map<String, Object>> results = processor.process(kafkaRecords);
+                    if (isClose.get()) {
+                        return;
+                    }
+                    if (results != null && !results.isEmpty()) {
+                        executor.execute(results);
+                    }
                 }
-                if (kafkaRecords.isEmpty()) {
-                    continue;
-                }
-                List<Map<String, Object>> results = processor.process(kafkaRecords);
-                if (isClose.get()) {
-                    return;
-                }
-                if (results != null && !results.isEmpty()) {
-                    executor.execute(results);
-                }
+            } catch (Exception e) {
+                LOGGER.error("catch an unknown exception; " + e);
+                isClose.set(true);
+            } finally {
+                kafkaCollector.close();
+                processor.close();
+                executor.close();
+                LOGGER.info("Scheduler is closed...");
             }
-        } catch (Exception e) {
-            LOGGER.error("catch an unknown exception; " + e);
-            isClose.set(true);
-        } finally {
-            kafkaCollector.close();
-            processor.close();
-            executor.close();
-            LOGGER.info("Scheduler is closed...");
-        }
+        }).start();
     }
 
     @Override

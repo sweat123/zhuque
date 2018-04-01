@@ -28,6 +28,9 @@ public class ZqRestController {
     @GetMapping(value = "/{taskName}")
     public Result<?> getTask(@PathVariable String taskName) {
         String config = assignmentService.getTask(taskName);
+        if (config == null) {
+            return Result.notFount(null);
+        }
         return Result.ok(new SyncAssignmentVo(taskName, SyncAssignment.newSyncTaskMetadata(config)));
     }
 

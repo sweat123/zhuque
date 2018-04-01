@@ -22,8 +22,8 @@ public class AssignmentService {
     public AssignmentService(ZqBrokerServer zqServer, ZqBrokerClient zqClient) throws BrokerClientRegistryException {
         this.zqServer = zqServer;
         this.zqClient = zqClient;
-        this.zqServer.start();
         this.zqClient.start();
+        this.zqServer.start();
     }
 
     /**
@@ -56,9 +56,9 @@ public class AssignmentService {
                 return "post assignment success";
             }
         } catch (KeeperException.NodeExistsException e) {
-            return "assignment is already existed";
+            throw new NotValidationException("assignment is already existed");
         }
-        return "The configuration of assignment is not correct;";
+        throw new NotValidationException("The configuration of assignment is not correct;");
     }
 
     public synchronized String deleteTask(String taskName) throws NotFindException {
