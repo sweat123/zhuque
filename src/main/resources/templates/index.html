@@ -1,12 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="css/bootstrap.css"/>
-    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
-    <script src="js/bootstrap.js"></script>
-    <script type="text/javascript" src="js/zhuque.js"></script>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <script th:src="@{js/jquery-3.3.1.min.js}"></script>
+    <script th:src="@{js/bootstrap.bundle.js}"></script>
+    <script th:src="@{js/bootstrap.js}"></script>
+    <script th:src="@{js/zhuque.js}"></script>
+
+    <link th:href="@{css/bootstrap.css}" rel="stylesheet" />
+    <link th:href="@{css/bootstrap-grid.css}" rel="stylesheet" />
+    <link th:href="@{css/bootstrap-reboot.css}" rel="stylesheet" />
 </head>
-<html lang="en">
 <div class="jumbotron" style="background-color: #BCEE68">
     <h2 style="color: #4D4D4D">Manager Your Assignment</h2>
 </div>
@@ -29,7 +36,7 @@
     <form>
         <div class="form-group">
             <label for="assignment_name">Assignment name</label>
-            <input type="text" class="form-control" id="assignment_name" placeholder="assignment name">
+            <input type="text" class="form-control" id="assignment_name" placeholder="assignment name"/>
         </div>
         <div class="form-group">
             <label for="assignment_body">Assignment configuration</label>

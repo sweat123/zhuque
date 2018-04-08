@@ -40,7 +40,7 @@ public class ZqRestController {
             assignmentService.createTask(taskName, config);
             return Result.ok(SyncAssignment.newSyncTaskMetadata(config));
         } catch (NotValidationException e) {
-            return Result.badRequest("message: " + e);
+            return Result.badRequest("message: " + e.getMessage());
         }
     }
 
