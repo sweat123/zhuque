@@ -20,7 +20,7 @@ public class ZqRestController {
     @Autowired
     private AssignmentService assignmentService;
 
-    @GetMapping(value = "/")
+    @GetMapping(value = "")
     public Result<List<String>> getTasks() {
         return Result.ok(assignmentService.getTasks());
     }

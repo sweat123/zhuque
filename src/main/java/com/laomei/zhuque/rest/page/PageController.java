@@ -18,4 +18,24 @@ public class PageController {
     public String home() {
         return "index";
     }
+
+    @GetMapping(value = "/new")
+    public String newAssignment() {
+        return "newAssignment";
+    }
+
+    @GetMapping(value = "/all")
+    public String allAssignment() {
+        return "allAssignment";
+    }
+
+    @GetMapping(value = "/display")
+    public String displayAssignment() {
+        return "displayAssignment";
+    }
+
+    @GetMapping(value = "/delete")
+    public String deleteAssignment() {
+        return "deleteAssignment";
+    }
 }

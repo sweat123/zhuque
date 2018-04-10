@@ -19,18 +19,24 @@
 </div>
 <div class="container">
     <div class="btn-group" role="group">
-        <button id='newAssignmentPage' type="button" class="btn btn-success">create new assignment</button>
+        <button id='homePage' type="button" class="btn btn-primary">Home</button>
     </div>
     <div class="btn-group" role="group">
-        <button id='allAssignmentPage' type="button" class="btn btn-primary">get all assignments</button>
-    </div>
-    <div class="btn-group" role="group">
-        <button id='displayAssignmentPage' type="button" class="btn btn-secondary">get assignment</button>
-    </div>
-    <div class="btn-group" role="group">
-        <button id='deleteAssignmentPage' type="button" class="btn btn-danger">delete assignment</button>
+        <button id='displayAssignmentButton' type="button" class="btn btn-success">display</button>
     </div>
 
     <hr/>
+
+    <form>
+        <div class="form-group">
+            <label for="displayAssignmentName">Assignment name</label>
+            <input type="text" class="form-control" id="displayAssignmentName" placeholder="assignment name"/>
+        </div>
+    </form>
+
+    <hr/>
+
+    <div id="showAssignmentDiv">
+    </div>
 </div>
 </html>

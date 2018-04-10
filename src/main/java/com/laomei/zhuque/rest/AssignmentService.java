@@ -67,7 +67,7 @@ public class AssignmentService {
                 return "delete assignment success";
             }
         } catch (KeeperException.NoNodeException e) {
-            return "assignment is not existed";
+            throw new NotFindException("assignment is not existed");
         }
         return "unknown error";
     }
