@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <script th:src="@{js/jquery-3.3.1.min.js}"></script>
+    <script th:src="@{js/bootstrap.bundle.js}"></script>
+    <script th:src="@{js/bootstrap.js}"></script>
+    <script th:src="@{js/zhuque.js}"></script>
+
+    <link th:href="@{css/bootstrap.css}" rel="stylesheet" />
+    <link th:href="@{css/bootstrap-grid.css}" rel="stylesheet" />
+    <link th:href="@{css/bootstrap-reboot.css}" rel="stylesheet" />
+</head>
+<div class="jumbotron" style="background-color: #BCEE68">
+    <h2 style="color: #4D4D4D">Manager Your Assignment</h2>
+</div>
+<div class="container">
+    <div class="btn-group" role="group">
+        <button id='homePage' type="button" class="btn btn-primary">Home</button>
+    </div>
+    <div class="btn-group" role="group">
+        <button id='displayAssignmentButton' type="button" class="btn btn-success">display</button>
+    </div>
+
+    <hr/>
+
+    <form>
+        <div class="form-group">
+            <label for="displayAssignmentName">Assignment name</label>
+            <input type="text" class="form-control" id="displayAssignmentName" placeholder="assignment name"/>
+        </div>
+    </form>
+
+    <hr/>
+
+    <div>
+        <textarea id="showAssignmentInput" style="height:500px;" class="form-control">
+        </textarea>
+    </div>
+</div>
+</html>

@@ -20,7 +20,7 @@ public class ZqRestController {
     @Autowired
     private AssignmentService assignmentService;
 
-    @GetMapping(value = "/")
+    @GetMapping(value = "")
     public Result<List<String>> getTasks() {
         return Result.ok(assignmentService.getTasks());
     }
@@ -31,7 +31,7 @@ public class ZqRestController {
         if (config == null) {
             return Result.notFount(null);
         }
-        return Result.ok(new SyncAssignmentVo(taskName, SyncAssignment.newSyncTaskMetadata(config)));
+        return Result.ok(new SyncAssignmentVo(taskName, config));
     }
 
     @PostMapping(value = "/{taskName}")
@@ -40,7 +40,7 @@ public class ZqRestController {
             assignmentService.createTask(taskName, config);
             return Result.ok(SyncAssignment.newSyncTaskMetadata(config));
         } catch (NotValidationException e) {
-            return Result.badRequest("message: " + e);
+            return Result.badRequest("message: " + e.getMessage());
         }
     }
 
