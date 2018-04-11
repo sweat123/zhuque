@@ -129,6 +129,7 @@ public class ZqBrokerClient {
         }
         closePathChildCache(name);
         removeTaskFromContainerAndStopTask(name);
+        LOGGER.info("delete assignment {} success;", name);
     }
 
     private void tryLockAndStartAssignment(CuratorFramework zkClient, String path, byte[] data) {

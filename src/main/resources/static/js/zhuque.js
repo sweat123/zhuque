@@ -6,13 +6,10 @@ function dump_obj(myObject) {
     alert(s);
 }
 
-function obj_type(obj) {
-    alert(Object.prototype.toString.call(obj));
-}
-
 function postNewAssignment() {
     var name = $("#assignment_name").val();
     var configuration = $("#assignment_body").val();
+    console.log(configuration);
     if (name.length === 0) {
         alert("assignment name can't be empty!");
         return;
@@ -26,6 +23,7 @@ function postNewAssignment() {
         url: '/api/zhuque/' + name,
         data: configuration,
         dataType: "json",
+        contentType: "application/x-yaml",
         success: function (data) {
             var state = data.state;
             if (state === 400) {
@@ -75,12 +73,13 @@ function getAllAssignment() {
             if (assignments.length === 0) {
                 body = "There is no Assignment;";
             } else {
-                body = "<table>";
+                body = "<table class='table table-bordered'>";
+                body += "<tr>";
+                body += "<th>id</th>";
+                body += "<th>name</th>";
                 for (var i = 0; i < assignments.length; i++) {
-                    body += "<tr>";
-                    body += "<th> id </th>";
+                    body += "<tr>";;
                     body += "<th>" + (i + 1) + "</th>";
-                    body += "<th> name </th>";
                     body += "<th>" + assignments[i] + "</th>";
                     body += "</tr>";
                 }
@@ -109,7 +108,9 @@ function displayAssignment() {
                 alert("assignment not exist!");
             } else if (state === 200) {
                 //TODO: display
-                alert(data.body);
+                var config = data.body.assignment;
+                $("#showAssignmentInput").val(config);
+                $("#showAssignmentInput").show();
             } else {
                 alert("unknown error!");
             }
@@ -149,4 +150,5 @@ $(document).ready(function () {
     $("#displayAssignmentButton").click(function () {
         displayAssignment();
     });
+    $("#showAssignmentInput").hide();
 });

@@ -13,5 +13,5 @@ public class SyncAssignmentVo {
 
     private String name;
 
-    private SyncAssignment assignment;
+    private String assignment;
 }

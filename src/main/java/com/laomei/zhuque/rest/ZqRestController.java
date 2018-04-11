@@ -31,7 +31,7 @@ public class ZqRestController {
         if (config == null) {
             return Result.notFount(null);
         }
-        return Result.ok(new SyncAssignmentVo(taskName, SyncAssignment.newSyncTaskMetadata(config)));
+        return Result.ok(new SyncAssignmentVo(taskName, config));
     }
 
     @PostMapping(value = "/{taskName}")
