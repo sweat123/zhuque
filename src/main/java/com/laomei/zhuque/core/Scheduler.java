@@ -2,10 +2,12 @@ package com.laomei.zhuque.core;
 
 import com.laomei.zhuque.config.ZqInstanceFactory;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.EntitySql;
+import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.MysqlCollection;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.TopicConfig;
 import com.laomei.zhuque.core.executor.Executor;
 import com.laomei.zhuque.core.executor.NoopExecutor;
 import com.laomei.zhuque.core.executor.SqlExecutor;
+import com.laomei.zhuque.core.reducer.MySqlReducer;
 import com.laomei.zhuque.core.reducer.Reducer;
 import com.laomei.zhuque.core.reducer.SolrDeleteReducer;
 import com.laomei.zhuque.core.reducer.SolrUpdateReducer;
@@ -91,6 +93,9 @@ public class Scheduler implements AutoCloseable {
                 return new SolrUpdateReducer(assignment.getProcessor().getSolrCollection(), solrClient);
             case Reducer.SOLR_DELETE_REDUCER:
                 return new SolrDeleteReducer(assignment.getProcessor().getSolrCollection(), solrClient);
+            case Reducer.MYSQL_REDUCER:
+                MysqlCollection mysql = assignment.getProcessor().getMysqlCollection();
+                return new MySqlReducer(mysql.getTable(), mysql.getUrl(), mysql.getUsername(), mysql.getPassword());
             default:
                 throw new UnknownReducerClazzException("clazz: " + clazz + " is not support in ZhuQue; " +
                         "You should check your reducer clazz configuration;");
@@ -119,7 +124,7 @@ public class Scheduler implements AutoCloseable {
                     if (kafkaRecords.isEmpty()) {
                         continue;
                     }
-                    List<Map<String, Object>> results = processor.process(kafkaRecords);
+                    List<Context> results = processor.process(kafkaRecords);
                     if (isClose.get()) {
                         return;
                     }

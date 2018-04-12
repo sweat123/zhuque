@@ -1,5 +1,7 @@
 package com.laomei.zhuque.core.reducer;
 
+import com.laomei.zhuque.core.Context;
+import com.laomei.zhuque.core.OffsetCenter;
 import com.laomei.zhuque.exception.InitSchemaFailedException;
 import com.laomei.zhuque.util.ObjTypeUtil;
 import com.lmax.disruptor.EventFactory;
@@ -40,7 +42,7 @@ public class SolrUpdateReducer implements Reducer {
 
     private RingBuffer<MsgEntry> ringBuffer;
 
-    private EventTranslatorOneArg<MsgEntry, Collection<Map<String, Object>>> TRANSLATOR =
+    private EventTranslatorOneArg<MsgEntry, Collection<Context>> TRANSLATOR =
             (event, sequence, arg0) -> {
                 event.contexts = arg0;
             };
@@ -66,16 +68,16 @@ public class SolrUpdateReducer implements Reducer {
     }
 
     @Override
-    public void reduce(Collection<Map<String, Object>> contexts) {
+    public void reduce(Collection<Context> contexts) {
         if (isClosed.get()) return;
         ringBuffer.publishEvent(TRANSLATOR, contexts);
     }
 
-    private void updateSolr(Collection<Map<String, Object>> contexts) {
+    private void updateSolr(Collection<Context> contexts) {
         List<SolrInputDocument> documents = new ArrayList<>(contexts.size());
-        for (Map<String, Object> context : contexts) {
+        for (Context context : contexts) {
             if (isClosed.get()) return;
-            SolrInputDocument doc = getSolrDocWithContext(context);
+            SolrInputDocument doc = getSolrDocWithContext(context.getUnmodifiableCtx());
             if (doc != null) {
                 documents.add(doc);
             }
@@ -83,6 +85,7 @@ public class SolrUpdateReducer implements Reducer {
         if (isClosed.get()) return;
         if (!documents.isEmpty()) {
             updateSolrWithDocs(documents);
+            contexts.forEach(context -> OffsetCenter.submit(context.getTopic(), context.getPartition(), context.getOffset()));
         }
     }
 
@@ -143,9 +146,9 @@ public class SolrUpdateReducer implements Reducer {
     // belows are contexts wrapper for disruptor
 
     static class MsgEntry {
-        Collection<Map<String, Object>> contexts;
+        Collection<Context> contexts;
 
-        MsgEntry(Collection<Map<String, Object>> contexts) {
+        MsgEntry(Collection<Context> contexts) {
             this.contexts = contexts;
         }
     }

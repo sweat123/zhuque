@@ -2,6 +2,7 @@ package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
 import com.laomei.zhuque.constants.ZhuQueConstants;
+import com.laomei.zhuque.core.Context;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.FilterTrans;
 import com.laomei.zhuque.util.ObjTypeUtil;
 
@@ -21,7 +22,7 @@ public class FilterTransform implements Transform {
     }
 
     @Override
-    public Map<String, Object> transform(final Map<String, Object> context) {
+    public Context transform(final Context context) {
         Preconditions.checkNotNull(context);
         return doFilterWithContext(context);
     }
@@ -30,26 +31,26 @@ public class FilterTransform implements Transform {
      * If the value in context is not same in FilterTrans, then return null;
      * @return If values in context is same in FilterTrans, return context; If not return false;
      */
-    private Map<String, Object> doFilterWithContext(Map<String, Object> context) {
-        if (filterTrans.getExist() != null && !doExistFilter(context, filterTrans.getExist())) {
+    private Context doFilterWithContext(Context context) {
+        if (filterTrans.getExist() != null && !doExistFilter(context.getUnmodifiableCtx(), filterTrans.getExist())) {
             return null;
         }
-        if (filterTrans.getNotExist() != null && !doNotExistFilter(context, filterTrans.getNotExist())) {
+        if (filterTrans.getNotExist() != null && !doNotExistFilter(context.getUnmodifiableCtx(), filterTrans.getNotExist())) {
             return null;
         }
-        if (filterTrans.getMatch() != null && !doMatchFilter(context, filterTrans.getMatch())) {
+        if (filterTrans.getMatch() != null && !doMatchFilter(context.getUnmodifiableCtx(), filterTrans.getMatch())) {
             return null;
         }
-        if (filterTrans.getNotMatch() != null && !doNotMatchFilter(context, filterTrans.getNotMatch())) {
+        if (filterTrans.getNotMatch() != null && !doNotMatchFilter(context.getUnmodifiableCtx(), filterTrans.getNotMatch())) {
             return null;
         }
-        if (filterTrans.getIn() != null && !doInFilter(context, filterTrans.getIn())) {
+        if (filterTrans.getIn() != null && !doInFilter(context.getUnmodifiableCtx(), filterTrans.getIn())) {
             return null;
         }
-        if (filterTrans.getNotIn() != null && !doNotInFilter(context, filterTrans.getNotIn())) {
+        if (filterTrans.getNotIn() != null && !doNotInFilter(context.getUnmodifiableCtx(), filterTrans.getNotIn())) {
             return null;
         }
-        if (filterTrans.getRange() != null && !doRangeFilter(context, filterTrans.getRange())) {
+        if (filterTrans.getRange() != null && !doRangeFilter(context.getUnmodifiableCtx(), filterTrans.getRange())) {
             return null;
         }
         return context;

@@ -1,6 +1,6 @@
 package com.laomei.zhuque.core.transformation;
 
-import java.util.Map;
+import com.laomei.zhuque.core.Context;
 
 /**
  * Transform context to another context; SqlTransform or PlaceholderTransform
@@ -9,5 +9,5 @@ import java.util.Map;
  */
 public interface Transform {
 
-    Map<String, Object> transform(Map<String, Object> context);
+    Context transform(Context context);
 }

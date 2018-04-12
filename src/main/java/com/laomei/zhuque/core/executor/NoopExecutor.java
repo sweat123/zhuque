@@ -1,6 +1,7 @@
 package com.laomei.zhuque.core.executor;
 
 import com.google.common.base.Preconditions;
+import com.laomei.zhuque.core.Context;
 import com.laomei.zhuque.core.reducer.Reducer;
 
 import java.util.Collection;
@@ -23,7 +24,7 @@ public class NoopExecutor implements Executor {
     }
 
     @Override
-    public void execute(Collection<Map<String, Object>> contexts) {
+    public void execute(Collection<Context> contexts) {
         if (!contexts.isEmpty()) {
             if (isClosed.get()) return;
             reducer.reduce(contexts);

@@ -1,6 +1,7 @@
 package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
+import com.laomei.zhuque.core.Context;
 import com.laomei.zhuque.util.PlaceholderParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,27 +29,26 @@ public class SqlTransform implements Transform {
     }
 
     @Override
-    public Map<String, Object> transform(Map<String, Object> context) {
+    public Context transform(Context context) {
         Preconditions.checkNotNull(context);
         return doSqlTransAndAddToContextWithPrefix(context);
     }
 
-    private Map<String, Object> doSqlTransAndAddToContextWithPrefix(Map<String, Object> context) {
+    private Context doSqlTransAndAddToContextWithPrefix(Context context) {
         String sql = replacePlaceholderInSqlWithContext(context, sqlWithPlaceholder);
-        return processSqlWithJdbcTemplate(sql);
-    }
-
-    private Map<String, Object> processSqlWithJdbcTemplate(String sql) {
         try {
-            return jdbcTemplate.queryForMap(sql);
+            Map<String, Object> result = jdbcTemplate.queryForMap(sql);
+            Context newCtx = Context.emptyCtx(context);
+            newCtx.putAll(result);
+            return newCtx;
         } catch (Exception e) {
             LOGGER.debug("process sql failed. SQL: {}", sql, e);
             return null;
         }
     }
 
-    private String replacePlaceholderInSqlWithContext(Map<String, Object> context, String sqlWithPlaceholder) {
-        PlaceholderParser placeholderParser = PlaceholderParser.getParser(context);
+    private String replacePlaceholderInSqlWithContext(Context context, String sqlWithPlaceholder) {
+        PlaceholderParser placeholderParser = PlaceholderParser.getParser(context.getUnmodifiableCtx());
         return placeholderParser.replacePlaceholder(sqlWithPlaceholder);
     }
 }
