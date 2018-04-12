@@ -1,6 +1,7 @@
 package com.laomei.zhuque.core.executor;
 
 import com.google.common.base.Preconditions;
+import com.laomei.zhuque.core.Context;
 import com.laomei.zhuque.core.reducer.Reducer;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.EntitySql;
 import com.laomei.zhuque.exception.NoResultException;
@@ -35,7 +36,7 @@ public class SqlExecutor implements Executor {
 
     private RingBuffer<MsgEntry> ringBuffer;
 
-    private EventTranslatorOneArg<MsgEntry, Collection<Map<String, Object>>> TRANSLATOR =
+    private EventTranslatorOneArg<MsgEntry, Collection<Context>> TRANSLATOR =
             (event, sequence, arg0) -> {
                 event.contexts = arg0;
             };
@@ -57,7 +58,7 @@ public class SqlExecutor implements Executor {
     }
 
     @Override
-    public void execute(Collection<Map<String, Object>> contexts) {
+    public void execute(Collection<Context> contexts) {
         if (isClosed.get()) return;
         ringBuffer.publishEvent(TRANSLATOR, contexts);
     }
@@ -76,12 +77,12 @@ public class SqlExecutor implements Executor {
         }
     }
 
-    private void processSqls(Collection<Map<String, Object>> contexts) {
-        List<Map<String, Object>> results = new ArrayList<>(contexts.size());
-        for (Map<String, Object> context : contexts) {
+    private void processSqls(Collection<Context> contexts) {
+        List<Context> results = new ArrayList<>(contexts.size());
+        for (Context context : contexts) {
             if (isClosed.get()) return;
             try {
-                Map<String, Object> result = processSql(context);
+                Context result = processSql(context);
                 results.add(result);
             } catch (NoResultException e) {
                 LOGGER.debug("get NoResultException in SqlExecutor; context: {}", context, e);
@@ -92,15 +93,15 @@ public class SqlExecutor implements Executor {
         }
     }
 
-    private Map<String, Object> processSql(Map<String, Object> context) throws NoResultException {
+    private Context processSql(Context context) throws NoResultException {
         if (isClosed.get()) return null;
-        Map<String, Object> newContext = context;
+        Context newContext = Context.copyOf(context);
         for (EntitySql entitySql : entitySqlList) {
             if (isClosed.get()) return null;
             String sqlWithPlaceholder = entitySql.getSql();
             String prefixName = entitySql.getName();
             boolean required = entitySql.getRequired() == null ? false : entitySql.getRequired();
-            PlaceholderParser placeholderParser = PlaceholderParser.getParser(newContext);
+            PlaceholderParser placeholderParser = PlaceholderParser.getParser(newContext.getUnmodifiableCtx());
             String sql = placeholderParser.replacePlaceholder(sqlWithPlaceholder);
             Map<String, Object> result = jdbcTemplate.queryForMap(sql);
             if (result == null && required) {
@@ -112,9 +113,9 @@ public class SqlExecutor implements Executor {
         return newContext;
     }
 
-    private Map<String, Object> addResultInContext(Map<String, Object> context,
-                                                   Map<String, Object> result,
-                                                   String prefixName) {
+    private Context addResultInContext(Context context,
+                                       Map<String, Object> result,
+                                       String prefixName) {
         for (Map.Entry<String, Object> entry : result.entrySet()) {
             if (isClosed.get()) return null;
             String key = entry.getKey();
@@ -133,9 +134,9 @@ public class SqlExecutor implements Executor {
     // belows are contexts wrapper for disruptor
 
     static class MsgEntry {
-        Collection<Map<String, Object>> contexts;
+        Collection<Context> contexts;
 
-        MsgEntry(Collection<Map<String, Object>> contexts) {
+        MsgEntry(Collection<Context> contexts) {
             this.contexts = contexts;
         }
     }

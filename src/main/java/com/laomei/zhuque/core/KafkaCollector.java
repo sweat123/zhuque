@@ -2,8 +2,12 @@ package com.laomei.zhuque.core;
 
 import lombok.val;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +18,7 @@ import java.util.List;
  * @author luobo
  */
 public class KafkaCollector implements Collector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaCollector.class);
 
     private Collection<String> subscribedTopics;
 
@@ -34,6 +39,19 @@ public class KafkaCollector implements Collector {
         if (!this.subscribedTopics.equals(subscribedTopics)) {
             this.subscribedTopics = subscribedTopics;
             kafkaConsumer.subscribe(subscribedTopics);
+            kafkaConsumer.subscribe(subscribedTopics, new ConsumerRebalanceListener() {
+                @Override
+                public void onPartitionsRevoked(final Collection<TopicPartition> partitions) {
+                    LOGGER.info("kafka partitions revoked: {}; commit offset;", partitions);
+                    kafkaConsumer.commitSync(OffsetCenter.offset());
+                }
+
+                @Override
+                public void onPartitionsAssigned(final Collection<TopicPartition> partitions) {
+                    LOGGER.info("kafka partitions assigned: {}; 更新OffsetCenter;", partitions);
+                    OffsetCenter.updatePartitionInfo(partitions);
+                }
+            });
         }
     }
 
@@ -66,10 +84,12 @@ public class KafkaCollector implements Collector {
                 continue;
             }
             String topic = record.topic();
+            int partition = record.partition();
+            long offset = record.offset();
             GenericRecord value = record.value();
             Object beforeValue = value.get(FIELD_BEFORE);
             Object afterValue = value.get(FIELD_AFTER);
-            kafkaRecords.add(new KafkaRecord(topic, beforeValue, afterValue));
+            kafkaRecords.add(new KafkaRecord(topic, partition, offset, beforeValue, afterValue));
         }
         return kafkaRecords;
     }

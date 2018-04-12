@@ -2,7 +2,7 @@ package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
 import com.laomei.zhuque.core.Collector;
-import com.laomei.zhuque.core.SyncAssignment;
+import com.laomei.zhuque.core.Context;
 import com.laomei.zhuque.core.SyncAssignment.SyncAssignmentProcessor.FieldTrans;
 
 import java.util.Map;
@@ -23,12 +23,12 @@ public class FieldTransform implements Transform {
     }
 
     @Override
-    public Map<String, Object> transform(Map<String, Object> context) {
+    public Context transform(Context context) {
         Preconditions.checkNotNull(context);
         return doFieldTransWithContext(context);
     }
 
-    private Map<String, Object> doFieldTransWithContext(Map<String, Object> context) {
+    private Context doFieldTransWithContext(Context context) {
         Map<String, Object> beforeContext = (Map<String, Object>) context.get(Collector.FIELD_BEFORE);
         Map<String, Object> afterContext = (Map<String, Object>) context.get(Collector.FIELD_AFTER);
         for (String field : fieldTrans.getFields()) {

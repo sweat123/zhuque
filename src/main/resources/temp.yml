@@ -1,18 +1,29 @@
 mysql:
-  address: xxx
+  address: jdbc:mysql://localhost:3306/zhuque
   username: xxx
   password: xxx
 processor:
-  topicConfigs:
-    - topic: topicX
-      dataTrans:
-        mode: sql
-        modeDetail: select * from xxx
   autoOffsetReset: latest
-  kafkaTopic: TopicXX
+  topicConfigs:
+    # - topic: dbserver1.zhuque.user
+    #   dataTrans:
+    #     mode: placeholder
+    #     modeDetail: ${id} as userid
+    - topic: dbserver1.zhuque.userinfo
+      dataTrans:
+        mode: placeholder
+        modeDetail: ${userid}
   entitySqls:
-    - sql: abc
-      name: x
+    # - sql: select account, password from user where id = ${userid}
+    #   name: user
+    #   required: true
+    - sql: select username, type, localtion from userinfo where userid = ${userid}
+      name: userinfo
       required: true
-  reducerClazz: update
-  solrCollection: collection
+  reducerClazz: MysqlReducer #SolrUpdateReducer
+  # solrCollection: user_info
+  mysqlCollection:
+    table: test
+    url: jdbc:mysql://localhost:3306/zhuque
+    username: xxx
+    password: xxx

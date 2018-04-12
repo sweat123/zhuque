@@ -35,7 +35,18 @@ public class SyncAssignment {
         private List<TopicConfig> topicConfigs;
         private List<EntitySql> entitySqls;
         private String reducerClazz;
+
         private String solrCollection;
+
+        private MysqlCollection mysqlCollection;
+
+        @Data
+        public static class MysqlCollection {
+            private String table;
+            private String url;
+            private String username;
+            private String password;
+        }
 
         @Data
         public static class TopicConfig {

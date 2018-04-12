@@ -36,11 +36,11 @@ public class KafkaRecordProcessor implements Processor {
     }
 
     @Override
-    public Map<String, Object> process(KafkaRecord record) {
+    public Context process(KafkaRecord record) {
         final String topic = record.getTopic();
         final List<Transform> transforms = topicTransforms.get(topic);
         if (isClosed.get()) return null;
-        Map<String, Object> context = makeContextWithRecord(record);
+        Context context = makeContextWithRecord(record);
         for (Transform transform : transforms) {
             if (isClosed.get()) return null;
             context = transform.transform(context);
@@ -52,12 +52,12 @@ public class KafkaRecordProcessor implements Processor {
     }
 
     @Override
-    public List<Map<String, Object>> process(final List<KafkaRecord> records) {
+    public List<Context> process(final List<KafkaRecord> records) {
         if (isClosed.get()) return null;
-        final List<Map<String, Object>> results = new ArrayList<>(records.size());
+        final List<Context> results = new ArrayList<>(records.size());
         records.forEach(kafkaRecord -> {
             if (isClosed.get()) return;
-            Map<String, Object> result = process(kafkaRecord);
+            Context result = process(kafkaRecord);
             if (result != null) {
                 results.add(result);
             }
@@ -103,8 +103,8 @@ public class KafkaRecordProcessor implements Processor {
         }
     }
 
-    private Map<String, Object> makeContextWithRecord(KafkaRecord record) {
-        Map<String, Object> context = new HashMap<>();
+    private Context makeContextWithRecord(KafkaRecord record) {
+        Context context = new Context(record.getTopic(), record.getPartition(), record.getOffset());
         context.put(PROCESS_KAFKA_RECORD_BEFORE_VALUE, record.getBefore());
         context.put(PROCESS_KAFKA_RECORD_AFTER_VALUE, record.getAfter());
         return context;

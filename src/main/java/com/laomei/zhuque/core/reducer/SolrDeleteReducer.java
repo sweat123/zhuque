@@ -1,6 +1,8 @@
 package com.laomei.zhuque.core.reducer;
 
 import com.laomei.zhuque.constants.ZhuQueConstants;
+import com.laomei.zhuque.core.Context;
+import com.laomei.zhuque.core.OffsetCenter;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventTranslatorOneArg;
@@ -16,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -37,7 +38,7 @@ public class SolrDeleteReducer implements Reducer {
 
     private RingBuffer<MsgEntry> ringBuffer;
 
-    private EventTranslatorOneArg<MsgEntry, Collection<Map<String, Object>>> TRANSLATOR =
+    private EventTranslatorOneArg<MsgEntry, Collection<Context>> TRANSLATOR =
             (event, sequence, arg0) -> {
                 event.contexts = arg0;
             };
@@ -55,7 +56,7 @@ public class SolrDeleteReducer implements Reducer {
     }
 
     @Override
-    public void reduce(Collection<Map<String, Object>> contexts) {
+    public void reduce(Collection<Context> contexts) {
         if (isClosed.get()) return;
         ringBuffer.publishEvent(TRANSLATOR, contexts);
     }
@@ -70,10 +71,10 @@ public class SolrDeleteReducer implements Reducer {
         }
     }
 
-    private void deleteSolrIndex(Collection<Map<String, Object>> contexts) {
+    private void deleteSolrIndex(Collection<Context> contexts) {
         if (isClosed.get()) return;
         List<String> deleteDocIds = new ArrayList<>(contexts.size());
-        for (Map<String, Object> context : contexts) {
+        for (Context context : contexts) {
             if (isClosed.get()) return;
             Object docId = context.get(ZhuQueConstants.SOLR_CONTEXT_ID);
             if (docId != null) {
@@ -83,6 +84,8 @@ public class SolrDeleteReducer implements Reducer {
         if (isClosed.get()) return;
         if (!deleteDocIds.isEmpty()) {
             deleteSolrWithDocIds(deleteDocIds);
+            contexts.forEach(context -> OffsetCenter.submit(context.getTopic(), context.getPartition(), context.getOffset()));
+
         }
     }
 
@@ -101,9 +104,9 @@ public class SolrDeleteReducer implements Reducer {
     // belows are contexts wrapper for disruptor
 
     static class MsgEntry {
-        Collection<Map<String, Object>> contexts;
+        Collection<Context> contexts;
 
-        MsgEntry(Collection<Map<String, Object>> contexts) {
+        MsgEntry(Collection<Context> contexts) {
             this.contexts = contexts;
         }
     }

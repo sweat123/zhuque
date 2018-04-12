@@ -1,6 +1,7 @@
 package com.laomei.zhuque.core.transformation;
 
 import com.google.common.base.Preconditions;
+import com.laomei.zhuque.core.Context;
 import com.laomei.zhuque.util.PlaceholderParser;
 
 import java.util.Arrays;
@@ -31,10 +32,10 @@ public class PlaceholderTransform implements Transform {
     }
 
     @Override
-    public Map<String, Object> transform(final Map<String, Object> context) {
+    public Context transform(final Context context) {
         Preconditions.checkNotNull(context);
-        final Map<String, Object> newContext = new HashMap<>();
-        final PlaceholderParser parser = PlaceholderParser.getParser(context);
+        final Context newContext = Context.emptyCtx(context);
+        final PlaceholderParser parser = PlaceholderParser.getParser(context.getUnmodifiableCtx());
         keysWithAlias.forEach((key, alias) -> {
             String value = parser.replacePlaceholder(key);
             newContext.put(alias, value);

@@ -11,12 +11,18 @@ public class KafkaRecord {
 
     private String topic;
 
+    private int partition;
+
+    private long offset;
+
     private Object before;
 
     private Object after;
 
-    public KafkaRecord(String topic, Object before, Object after) {
+    public KafkaRecord(String topic, int partition, long offset, Object before, Object after) {
         this.topic = topic;
+        this.partition = partition;
+        this.offset = offset;
         this.before = before;
         this.after = after;
     }
